@@ -12,6 +12,8 @@ A proposta aqui complementa essa ideia com uma etapa que costuma faltar. Falar n
 
 Em uma frase: **você fala como pensa; o agente clarifica antes de agir.**
 
+Veja o antes/depois na [demo](docs/DEMO.md).
+
 ## O que este repositório entrega
 
 Este repositório fornece uma camada de **intake conversacional** para agentes de IA. Ela detecta quando uma entrada não está pronta para execução, organiza a intenção do usuário, identifica lacunas críticas, faz perguntas objetivas e gera um brief/prompt refinado.

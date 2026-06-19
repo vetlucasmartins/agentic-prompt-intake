@@ -4,6 +4,16 @@ A portable protocol that prevents AI agents from executing vague prompts, voice 
 
 The user may speak naturally. The agent must perform intake before acting.
 
+## Context and motivation
+
+This repository started as a practical answer to the conversation sparked by Thiago Finch's viral video about the "mega brain" and speaking to AI naturally: describe the idea out loud, in a stream of thought, and let the agent do the work.
+
+This project complements that idea with a step that is usually missing. Speaking naturally is great for the human, but it is exactly where agents fail most: they tend to execute a loose transcript immediately, as if it were a finished task. Intake bridges natural speech and execution — the agent welcomes the audio / natural language, runs the intake, closes the critical gaps, and only then executes.
+
+In one line: **you speak the way you think; the agent clarifies before it acts.**
+
+See the before/after in the [demo](docs/DEMO.md).
+
 ## What this repository provides
 
 This repository provides a conversational intake layer for AI agents. It detects when a user input is not execution-ready, organizes intent, identifies critical gaps, asks targeted questions, and produces a refined brief or prompt.
