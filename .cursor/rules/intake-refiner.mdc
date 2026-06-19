@@ -1,0 +1,22 @@
+---
+description: Apply the Agentic Prompt Intake Protocol when a user request is vague, voice-like, incomplete, or under-specified.
+alwaysApply: true
+---
+
+# Cursor rule: intake-refiner
+
+Use `AGENTS.md` and `docs/INTAKE-PROTOCOL.md` as the source of truth.
+
+When a request is vague, rambling, voice-transcribed, or missing key fields, do not execute immediately. First create a structured brief, identify gaps, and ask targeted questions.
+
+Required fields:
+
+- Objective
+- Deliverable
+- Context
+- Audience
+- Constraints
+- Format
+- Success criteria
+
+If the task is almost clear, state assumptions and proceed. If essential information is missing, ask before executing.

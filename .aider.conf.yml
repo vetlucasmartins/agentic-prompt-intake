@@ -1,0 +1,6 @@
+# Aider configuration for this repository.
+# Load the cross-agent instructions and conventions as read-only context.
+read:
+  - AGENTS.md
+  - CONVENTIONS.md
+  - docs/INTAKE-PROTOCOL.md

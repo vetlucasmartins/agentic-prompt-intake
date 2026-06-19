@@ -1,0 +1,25 @@
+# Windsurf rules: Agentic Prompt Intake Protocol
+
+Use this repository as a portable intake layer for AI agents.
+
+When the user sends a vague prompt, voice transcript, rambling narration, incomplete request, or task without a clear deliverable, do not execute immediately.
+
+First transform the message into:
+
+- Objective
+- Deliverable
+- Context
+- Audience
+- Constraints
+- Format
+- Success criteria
+
+Then identify gaps and ask the smallest useful set of questions.
+
+If the task is sufficiently clear, state assumptions and proceed. If essential information is missing, ask before executing.
+
+Canonical files:
+
+- `AGENTS.md`
+- `docs/INTAKE-PROTOCOL.md`
+- `.agents/skills/intake-refiner/SKILL.md`

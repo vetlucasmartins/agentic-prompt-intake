@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/intake-router.schema.json",
+  "title": "Intake Router Decision",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "classification",
+    "confidence",
+    "reason",
+    "known_fields",
+    "critical_gaps",
+    "suggested_questions",
+    "provisional_task"
+  ],
+  "properties": {
+    "classification": {
+      "type": "string",
+      "enum": [
+        "READY_TO_EXECUTE",
+        "NEEDS_LIGHT_REFINEMENT",
+        "NEEDS_INTAKE",
+        "BLOCKED"
+      ]
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1
+    },
+    "known_fields": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "objective",
+        "deliverable",
+        "context",
+        "audience",
+        "constraints",
+        "format",
+        "success_criteria"
+      ],
+      "properties": {
+        "objective": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "deliverable": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "context": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "audience": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "constraints": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "format": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "success_criteria": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "critical_gaps": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "suggested_questions": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 7,
+      "items": {
+        "type": "string"
+      }
+    },
+    "provisional_task": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  }
+}

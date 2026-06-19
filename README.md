@@ -1,0 +1,220 @@
+# Agentic Prompt Intake Protocol
+
+Um protocolo portátil para impedir que agentes de IA executem pedidos vagos, transcrições de áudio, narrações soltas ou prompts mal formulados antes de transformá-los em uma tarefa clara, verificável e executável.
+
+A ideia central é simples: a pessoa pode falar naturalmente; o agente deve fazer a anamnese do pedido antes de agir.
+
+## Contexto e motivação
+
+Este repositório nasceu como uma resposta prática ao debate levantado pelo vídeo viral do Thiago Finch sobre o "mega brain" e a forma de falar naturalmente com a IA: descrever a ideia em voz alta, em fluxo de pensamento, e deixar o agente trabalhar.
+
+A proposta aqui complementa essa ideia com uma etapa que costuma faltar. Falar naturalmente é ótimo para a pessoa, mas é justamente quando o agente mais erra: ele tende a executar imediatamente uma transcrição solta como se fosse uma tarefa pronta. O *intake* resolve isso fazendo a ponte entre a fala natural e a execução — o agente acolhe o áudio/linguagem natural, faz a anamnese, fecha as lacunas críticas e só então executa.
+
+Em uma frase: **você fala como pensa; o agente clarifica antes de agir.**
+
+## O que este repositório entrega
+
+Este repositório fornece uma camada de **intake conversacional** para agentes de IA. Ela detecta quando uma entrada não está pronta para execução, organiza a intenção do usuário, identifica lacunas críticas, faz perguntas objetivas e gera um brief/prompt refinado.
+
+Ele foi desenhado para funcionar em múltiplas ferramentas, não apenas em Claude Code ou Codex.
+
+## Arquitetura
+
+```text
+.
+├── AGENTS.md                                      # Contrato principal para agentes compatíveis
+├── CLAUDE.md                                      # Adaptador para Claude Code
+├── GEMINI.md                                      # Adaptador genérico para agentes que leem GEMINI.md
+├── CONVENTIONS.md                                # Convenções para Aider e ferramentas similares
+├── .agents/skills/intake-refiner/SKILL.md         # Skill para Codex / padrão Agent Skills
+├── .claude/skills/intake-refiner/SKILL.md         # Skill para Claude Code
+├── .github/copilot-instructions.md                # Instruções de repositório para GitHub Copilot
+├── .github/instructions/intake-refiner.instructions.md
+├── .cursor/rules/intake-refiner.mdc               # Regra para Cursor
+├── .clinerules/intake-refiner.md                  # Regra para Cline
+├── .windsurfrules                                 # Regra para Windsurf
+├── docs/INTAKE-PROTOCOL.md                        # Protocolo canônico detalhado
+├── docs/PORTABILITY.md                            # Mapa de compatibilidade entre plataformas
+├── docs/EXAMPLES.md                               # Exemplos de uso
+├── prompts/system-intake.md                       # Prompt de sistema para agentes próprios / Custom GPT
+├── prompts/intake-router.md                       # Roteador de decisão antes da execução
+├── schemas/intake-router.schema.json              # Esquema JSON para classificar entradas
+├── templates/intake-brief.md                      # Modelo de brief estruturado
+├── templates/execution-prompt.md                  # Modelo de prompt final executável
+├── evals/intake-cases.jsonl                       # Casos de teste para avaliar o comportamento
+└── scripts/validate_structure.py                  # Validação simples da estrutura do repositório
+```
+
+## Quando o protocolo deve ser ativado
+
+Ative o protocolo quando a entrada do usuário parecer qualquer uma destas situações:
+
+- Transcrição de áudio, pensamento em voz alta ou narração longa.
+- Pedido vago, ambíguo, emocional ou associativo.
+- Prompt sem entregável claro.
+- Pedido com lacunas sobre público, formato, contexto, restrições ou critério de sucesso.
+- Solicitação em que executar imediatamente provavelmente produziria um resultado genérico, incorreto ou desalinhado com o projeto.
+
+Não ative quando o usuário já forneceu uma tarefa clara, formato, contexto suficiente e critérios mínimos de sucesso.
+
+## Instalação rápida por plataforma
+
+### Codex
+
+Use o `AGENTS.md` na raiz do repositório. Para a skill reutilizável, mantenha:
+
+```text
+.agents/skills/intake-refiner/SKILL.md
+```
+
+O agente deve ler o `AGENTS.md` como contrato geral e carregar a skill quando detectar uma entrada que precisa de refinamento.
+
+### Claude Code
+
+Mantenha estes arquivos:
+
+```text
+CLAUDE.md
+.claude/skills/intake-refiner/SKILL.md
+```
+
+O `CLAUDE.md` define a regra persistente. A skill contém o procedimento detalhado.
+
+### GitHub Copilot
+
+Mantenha:
+
+```text
+.github/copilot-instructions.md
+.github/instructions/intake-refiner.instructions.md
+AGENTS.md
+```
+
+### Cursor
+
+Mantenha:
+
+```text
+.cursor/rules/intake-refiner.mdc
+AGENTS.md
+```
+
+### Cline
+
+Mantenha:
+
+```text
+.clinerules/intake-refiner.md
+AGENTS.md
+```
+
+### Windsurf
+
+Mantenha:
+
+```text
+.windsurfrules
+AGENTS.md
+```
+
+### Aider
+
+Use:
+
+```bash
+aider --read AGENTS.md --read CONVENTIONS.md
+```
+
+ou configure o arquivo `.aider.conf.yml` incluído no repositório.
+
+### Custom GPT, ChatGPT Project ou agente via API
+
+Use:
+
+```text
+prompts/system-intake.md
+prompts/intake-router.md
+schemas/intake-router.schema.json
+```
+
+O desenho recomendado para API é:
+
+```text
+entrada do usuário -> intake router -> intake refiner -> executor principal
+```
+
+## Fluxo de resposta esperado
+
+Quando o protocolo for acionado, o agente não deve executar imediatamente. Ele deve responder neste padrão:
+
+```markdown
+Entendi provisoriamente que você quer...
+
+Brief estruturado:
+- Objetivo:
+- Entregável:
+- Contexto:
+- Público:
+- Restrições:
+- Critério de sucesso:
+
+Lacunas críticas:
+1. ...
+2. ...
+
+Perguntas para destravar:
+1. ...
+2. ...
+3. ...
+
+Enquanto você responde, a versão provisória do pedido seria:
+> ...
+```
+
+Se a tarefa estiver quase clara, o agente pode explicitar as suposições e seguir. Se faltar uma informação estrutural, deve perguntar antes.
+
+## Exemplo curto
+
+Entrada do usuário:
+
+```text
+Falei um áudio meio bagunçado. Quero que a IA organize minha ideia sobre criar um produto, mas ainda não sei direito se é curso, ebook ou mentoria.
+```
+
+Saída esperada:
+
+```markdown
+Entendi que você quer transformar uma ideia inicial de produto em uma proposta mais clara, mas ainda não decidiu o formato.
+
+Brief provisório:
+- Objetivo: organizar uma ideia de produto digital.
+- Entregável possível: mapa de decisão entre curso, ebook e mentoria.
+- Lacuna principal: público, transformação prometida e formato preferido.
+
+Perguntas:
+1. Quem é o público principal?
+2. Qual problema específico esse produto resolveria?
+3. Você quer primeiro decidir o formato ou já construir uma oferta preliminar?
+```
+
+## Princípios
+
+1. A IA deve acolher a linguagem natural, mas não deve fingir que um pedido vago é uma tarefa pronta.
+2. O agente deve clarificar antes de executar quando a ambiguidade afeta o resultado.
+3. Perguntas devem ser poucas, específicas e hierarquizadas.
+4. O agente deve declarar suposições em vez de escondê-las.
+5. O resultado final deve ser uma tarefa operacional, não apenas um prompt “bonito”.
+
+## Estado do projeto
+
+Versão inicial: `0.1.0`.
+
+Este repositório é deliberadamente simples. Ele contém regras, skills, prompts, modelos e um pequeno script de validação. Não requer dependências externas.
+
+## Como contribuir
+
+Leia `CONTRIBUTING.md`. Ao alterar o protocolo central, atualize também os adaptadores relevantes para evitar divergência entre ferramentas.
+
+## Licença
+
+MIT. Veja `LICENSE`.

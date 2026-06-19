@@ -1,0 +1,4 @@
+{"id": "voice_messy_product_idea_pt", "input": "Eu mandei um áudio meio bagunçado. Quero criar alguma coisa para pais, talvez curso, talvez ebook, organiza isso pra mim.", "expected_classification": "NEEDS_INTAKE", "must_ask_about": ["público", "problema", "formato"]}
+{"id": "clear_rewrite_pt", "input": "Reescreva este parágrafo em português formal, preservando o sentido e reduzindo repetições.", "expected_classification": "READY_TO_EXECUTE", "must_not_do": ["full intake", "three clarifying questions"]}
+{"id": "vague_app_improvement_en", "input": "Make this app better and more professional.", "expected_classification": "NEEDS_INTAKE", "must_ask_about": ["area of improvement", "target", "reference"]}
+{"id": "light_refinement_readme_pt", "input": "Transforma isso em um README melhor para GitHub. Quero claro e usável.", "expected_classification": "NEEDS_LIGHT_REFINEMENT", "must_state_assumptions": true}
