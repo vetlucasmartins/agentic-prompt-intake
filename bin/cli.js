@@ -161,6 +161,23 @@ function detect(cwd) {
   return ORDER.filter((k) => TARGETS[k].detect.some((m) => fs.existsSync(path.join(cwd, m))));
 }
 
+// Já existe o protocolo neste escopo para este alvo? Sinal: bloco marcado no
+// arquivo-contrato OU arquivo de skill/regra copiado.
+function scopeHasProtocol(key, scope, cwd) {
+  const t = TARGETS[key];
+  const layout = scope === "global" ? t.global : t.project;
+  if (!layout) return false;
+  const base = scope === "global" ? layout.base() : cwd;
+  if (layout.contract) {
+    const f = path.join(base, layout.contract);
+    try { if (fs.existsSync(f) && fs.readFileSync(f, "utf8").includes(START)) return true; } catch { /* ignore */ }
+  }
+  for (const [, destRel] of layout.copies || []) {
+    if (fs.existsSync(path.join(base, destRel))) return true;
+  }
+  return false;
+}
+
 function installOne(key, scope, cwd, log) {
   const t = TARGETS[key];
   let layout = scope === "global" ? t.global : t.project;
@@ -168,6 +185,13 @@ function installOne(key, scope, cwd, log) {
   if (scope === "global" && !t.global) {
     layout = t.project; effectiveScope = "project";
     log(`  ${c("yellow", "!")} ${t.label}: sem config global; instalando no projeto.`);
+  }
+  // Aviso não-bloqueante: se o protocolo já está no OUTRO escopo, instalar aqui
+  // o carrega 2x por sessão (mais tokens, sem ganho).
+  const otherScope = effectiveScope === "global" ? "project" : "global";
+  if (TARGETS[key][otherScope] && scopeHasProtocol(key, otherScope, cwd)) {
+    log(`  ${c("yellow", "!")} ${t.label}: protocolo já presente no escopo ${otherScope}. ` +
+        `Manter os dois = carregar o intake 2x por sessão (mais tokens). Prefira um único escopo.`);
   }
   const base = effectiveScope === "global" ? layout.base() : cwd;
   const disp = (abs) => (effectiveScope === "global" ? abs.replace(os.homedir(), "~") : path.relative(cwd, abs) || abs);
