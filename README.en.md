@@ -39,6 +39,49 @@ npx agentic-prompt-intake --target claude,cursor --scope project --yes
 npx agentic-prompt-intake --list      # list all targets
 ```
 
+> ⚠️ **Install in a SINGLE scope (global OR project, never both).** If the
+> protocol is present in both the global scope (`~/.claude`, `~/.codex`) and the
+> project scope, the agent loads the intake block **twice per session** —
+> burning tokens for no gain. The installer warns when it detects the protocol
+> already present in the other scope. For one repo, prefer project scope; for
+> all your projects, use global — but not both.
+>
+> Manual check (Claude Code):
+> `grep -l intake-refiner:start ~/.claude/CLAUDE.md ./CLAUDE.md 2>/dev/null` — if
+> it shows up in both, remove the marked block from one of them.
+
+Since **v0.3.0** intake runs in a **single short pass** (cost discipline): no
+extended reasoning, no subagents, no file reads just to classify. Most inputs
+resolve to `READY_TO_EXECUTE` / `NEEDS_LIGHT_REFINEMENT`; the full `NEEDS_INTAKE`
+brief is reserved for genuinely ambiguous input. Intake costs a fraction of the
+task, never more.
+
+### Evaluate the behavior (eval)
+
+The cases in `evals/intake-cases.jsonl` can be executed and scored by
+`scripts/run_eval.mjs` (zero dependencies, native `https` — works on Node ≥ 16):
+
+```bash
+npm run eval:dry          # validate the jsonl + static asserts, NO network (CI-friendly)
+npm run eval              # run the cases against the model (needs an API key)
+```
+
+For the real run, configure the provider via environment variables:
+
+```bash
+export ANTHROPIC_API_KEY=sk-...           # or INTAKE_EVAL_API_KEY
+export INTAKE_EVAL_PROVIDER=anthropic     # default; "openai" also supported
+export INTAKE_EVAL_MODEL=claude-haiku-4-5-20251001
+npm run eval
+```
+
+The runner makes **exactly one call per case** (no tools, `temperature 0`,
+bounded `max_tokens`), so "extended reasoning", "spawn subagents" and "read
+files" are impossible by construction. It scores classification, question count,
+`must_not_do` items, `must_ask_about` coverage and stated assumptions — and
+records **input/output tokens** against a **per-class cost ceiling**, printing a
+PASS/FAIL table per case plus a summary (accuracy, average and p95 cost).
+
 ## What this repository provides
 
 This repository provides a conversational intake layer for AI agents. It detects when a user input is not execution-ready, organizes intent, identifies critical gaps, asks targeted questions, and produces a refined brief or prompt.
@@ -57,6 +100,7 @@ It is designed for multiple tools, not only Claude Code or Codex.
 - `.windsurfrules`: Windsurf project rule.
 - `prompts/system-intake.md`: system prompt for custom agents or Custom GPTs.
 - `schemas/intake-router.schema.json`: structured decision schema.
+- `evals/intake-cases.jsonl` + `scripts/run_eval.mjs`: behavior cases and the runner that executes and scores them (with cost ceilings).
 
 ## Recommended architecture
 

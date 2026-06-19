@@ -7,6 +7,8 @@
 - Tightened the skill trigger `description` so it no longer fires on already-actionable prompts.
 - De-duplicated the Gemini, Cursor, Windsurf, and Copilot adapters: inline field lists replaced with pointers to the canonical files; documented installing in a single scope to avoid double-loading.
 - Strengthened evals with cost-guard fields (`max_questions`, no extended reasoning/subagents) and added ready-prompt cases.
+- Added an eval **runner** (`scripts/run_eval.mjs`, zero-dependency, native `https`, Node ≥ 16): one model call per case (no tools, `temperature 0`, bounded `max_tokens`), provider-agnostic (Anthropic default, OpenAI adapter). Scores classification, question budget, `must_not_do`, `must_ask_about`, stated assumptions, and records input/output **tokens** against a per-class **cost ceiling**, printing a PASS/FAIL table plus a summary (accuracy, avg/p95 cost). Added `npm run eval` and `npm run eval:dry` (schema + static asserts, no network — CI-friendly).
+- README/README.en: documented the single-scope install warning (avoid double-loading the protocol), the v0.3.0 cost discipline, and how to run the eval. The installer (`bin/cli.js`) now emits a non-blocking warning when the protocol is already present in the other scope (global vs project).
 
 ## 0.2.0 - One-command installer
 

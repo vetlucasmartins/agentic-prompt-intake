@@ -41,6 +41,52 @@ npx agentic-prompt-intake --list      # lista todos os alvos
 
 > Prefere instalar manualmente? Veja [Instalação rápida por plataforma](#instalação-rápida-por-plataforma) mais abaixo.
 
+> ⚠️ **Instale em UM único escopo (global OU projeto, nunca os dois).** Se o
+> protocolo estiver presente tanto no escopo global (`~/.claude`, `~/.codex`)
+> quanto no do projeto, o agente carrega o bloco de intake **duas vezes por
+> sessão** — desperdiçando tokens sem nenhum ganho. O instalador avisa quando
+> detecta o protocolo já presente no outro escopo. Para um projeto específico,
+> prefira o escopo de projeto; para todos os seus projetos, use o global —
+> mas não os dois.
+>
+> Checagem manual (Claude Code):
+> `grep -l intake-refiner:start ~/.claude/CLAUDE.md ./CLAUDE.md 2>/dev/null` —
+> se aparecer nos dois, remova o bloco marcado de um deles.
+
+A partir da **v0.3.0** o intake roda em **um único passo curto** (cost
+discipline): sem raciocínio estendido, sem subagents, sem leitura de arquivos só
+para classificar. A maioria das entradas resolve em `READY_TO_EXECUTE` /
+`NEEDS_LIGHT_REFINEMENT` — o brief completo de `NEEDS_INTAKE` fica reservado para
+o que é de fato ambíguo. Assim o intake custa uma fração da tarefa, nunca mais.
+
+### Avaliar o comportamento (eval)
+
+Os casos em `evals/intake-cases.jsonl` podem ser executados e pontuados pelo
+runner `scripts/run_eval.mjs` (zero dependências, usa `https` nativo — funciona
+em Node ≥ 16):
+
+```bash
+npm run eval:dry          # valida o jsonl + asserts estáticos, SEM rede (ideal p/ CI)
+npm run eval              # executa os casos contra o modelo (precisa de API key)
+```
+
+Para a execução real, configure o provider por variáveis de ambiente:
+
+```bash
+export ANTHROPIC_API_KEY=sk-...           # ou INTAKE_EVAL_API_KEY
+export INTAKE_EVAL_PROVIDER=anthropic     # default; também suporta "openai"
+export INTAKE_EVAL_MODEL=claude-haiku-4-5-20251001
+npm run eval
+```
+
+O runner faz **uma única chamada por caso** (sem tools, `temperature 0`,
+`max_tokens` limitado), então "extended reasoning", "spawn subagents" e "ler
+arquivos" são impossíveis por construção. Ele pontua classificação, número de
+perguntas, itens `must_not_do`, cobertura de `must_ask_about`, presença de
+suposições — e registra **tokens de entrada/saída** com um **teto de custo por
+classe**, imprimindo uma tabela com PASS/FAIL por caso e um resumo (taxa de
+acerto, custo médio e p95).
+
 ## O que este repositório entrega
 
 Este repositório fornece uma camada de **intake conversacional** para agentes de IA. Ela detecta quando uma entrada não está pronta para execução, organiza a intenção do usuário, identifica lacunas críticas, faz perguntas objetivas e gera um brief/prompt refinado.
@@ -71,6 +117,7 @@ Ele foi desenhado para funcionar em múltiplas ferramentas, não apenas em Claud
 ├── templates/intake-brief.md                      # Modelo de brief estruturado
 ├── templates/execution-prompt.md                  # Modelo de prompt final executável
 ├── evals/intake-cases.jsonl                       # Casos de teste para avaliar o comportamento
+├── scripts/run_eval.mjs                           # Runner que executa e pontua os casos (custo incluso)
 └── scripts/validate_structure.py                  # Validação simples da estrutura do repositório
 ```
 

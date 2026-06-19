@@ -10,7 +10,9 @@
   },
   "scripts": {
     "validate": "python3 scripts/validate_structure.py",
-    "start": "node bin/cli.js"
+    "start": "node bin/cli.js",
+    "eval": "node scripts/run_eval.mjs",
+    "eval:dry": "node scripts/run_eval.mjs --dry-run"
   },
   "engines": {
     "node": ">=16"
