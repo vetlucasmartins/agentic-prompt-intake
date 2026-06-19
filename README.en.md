@@ -24,7 +24,7 @@ No need to touch `.claude/`, `.cursor/` or `AGENTS.md` by hand. In your project 
 npx agentic-prompt-intake
 ```
 
-The installer **detects your tool** (Claude Code, Codex, GitHub Copilot, Cursor, Cline, Windsurf or Aider), asks whether to install into the **current project** or **globally**, and drops the right files in the right place. It **never overwrites** your `CLAUDE.md`/`AGENTS.md` — it only adds a marked, idempotent block.
+The installer **detects your tool** (Claude Code, Codex, Google Antigravity, GitHub Copilot, Cursor, Cline, Windsurf, Zed or Aider — plus Gemini CLI and any agent that reads `AGENTS.md`), asks whether to install into the **current project** or **globally**, and drops the right files in the right place. It **never overwrites** your `CLAUDE.md`/`AGENTS.md` — it only adds a marked, idempotent block.
 
 Until the npm release is out, you can run it straight from GitHub:
 
@@ -90,14 +90,16 @@ It is designed for multiple tools, not only Claude Code or Codex.
 
 ## Core files
 
-- `AGENTS.md`: primary cross-agent contract.
-- `.agents/skills/intake-refiner/SKILL.md`: Codex / Agent Skills version.
+- `AGENTS.md`: primary cross-agent contract (also read by Google Antigravity and Zed).
+- `.agents/skills/intake-refiner/SKILL.md`: Codex / Antigravity (Agent Skills / `.agents/`) version.
 - `.claude/skills/intake-refiner/SKILL.md`: Claude Code skill version.
 - `CLAUDE.md`: Claude Code persistent adapter.
 - `.github/copilot-instructions.md`: GitHub Copilot repository instructions.
 - `.cursor/rules/intake-refiner.mdc`: Cursor project rule.
 - `.clinerules/intake-refiner.md`: Cline workspace rule.
 - `.windsurfrules`: Windsurf project rule.
+- `.rules`: Zed default agent rules file.
+- `GEMINI.md`: Gemini CLI adapter (points to `AGENTS.md`).
 - `prompts/system-intake.md`: system prompt for custom agents or Custom GPTs.
 - `schemas/intake-router.schema.json`: structured decision schema.
 - `evals/intake-cases.jsonl` + `scripts/run_eval.mjs`: behavior cases and the runner that executes and scores them (with cost ceilings).

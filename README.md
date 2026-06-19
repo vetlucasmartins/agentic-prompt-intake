@@ -24,7 +24,7 @@ Não precisa saber mexer em `.claude/`, `.cursor/` ou `AGENTS.md`. Na pasta do s
 npx agentic-prompt-intake
 ```
 
-O instalador **detecta sua ferramenta** (Claude Code, Codex, GitHub Copilot, Cursor, Cline, Windsurf ou Aider), pergunta se a instalação é no **projeto atual** ou **global** (toda a máquina), e coloca os arquivos certos no lugar certo. Ele **nunca sobrescreve** o seu `CLAUDE.md`/`AGENTS.md` — apenas adiciona um bloco marcado e idempotente.
+O instalador **detecta sua ferramenta** (Claude Code, Codex, Google Antigravity, GitHub Copilot, Cursor, Cline, Windsurf, Zed ou Aider — além de Gemini CLI e qualquer agente que leia `AGENTS.md`), pergunta se a instalação é no **projeto atual** ou **global** (toda a máquina), e coloca os arquivos certos no lugar certo. Ele **nunca sobrescreve** o seu `CLAUDE.md`/`AGENTS.md` — apenas adiciona um bloco marcado e idempotente.
 
 Enquanto a publicação no npm não sai, você já pode rodar direto do GitHub:
 
@@ -101,13 +101,14 @@ Ele foi desenhado para funcionar em múltiplas ferramentas, não apenas em Claud
 ├── CLAUDE.md                                      # Adaptador para Claude Code
 ├── GEMINI.md                                      # Adaptador genérico para agentes que leem GEMINI.md
 ├── CONVENTIONS.md                                # Convenções para Aider e ferramentas similares
-├── .agents/skills/intake-refiner/SKILL.md         # Skill para Codex / padrão Agent Skills
+├── .agents/skills/intake-refiner/SKILL.md         # Skill para Codex / Antigravity (padrão Agent Skills / .agents)
 ├── .claude/skills/intake-refiner/SKILL.md         # Skill para Claude Code
 ├── .github/copilot-instructions.md                # Instruções de repositório para GitHub Copilot
 ├── .github/instructions/intake-refiner.instructions.md
 ├── .cursor/rules/intake-refiner.mdc               # Regra para Cursor
 ├── .clinerules/intake-refiner.md                  # Regra para Cline
 ├── .windsurfrules                                 # Regra para Windsurf
+├── .rules                                          # Regra padrão para Zed
 ├── docs/INTAKE-PROTOCOL.md                        # Protocolo canônico detalhado
 ├── docs/PORTABILITY.md                            # Mapa de compatibilidade entre plataformas
 ├── docs/EXAMPLES.md                               # Exemplos de uso
@@ -144,6 +145,15 @@ Use o `AGENTS.md` na raiz do repositório. Para a skill reutilizável, mantenha:
 ```
 
 O agente deve ler o `AGENTS.md` como contrato geral e carregar a skill quando detectar uma entrada que precisa de refinamento.
+
+### Google Antigravity
+
+O Antigravity lê nativamente o `AGENTS.md` e o diretório `.agents/` — o mesmo padrão do Codex. Mantenha:
+
+```text
+AGENTS.md
+.agents/skills/intake-refiner/SKILL.md
+```
 
 ### Claude Code
 
@@ -190,6 +200,15 @@ Mantenha:
 
 ```text
 .windsurfrules
+AGENTS.md
+```
+
+### Zed
+
+O Zed usa o arquivo `.rules` na raiz como regra padrão do agente (também lê `AGENTS.md`). O instalador injeta um bloco marcado — nunca sobrescreve o seu `.rules`. Mantenha:
+
+```text
+.rules
 AGENTS.md
 ```
 

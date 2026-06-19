@@ -77,6 +77,15 @@ const TARGETS = {
       contract: "AGENTS.md", skillRef: "~/.codex/skills/intake-refiner/SKILL.md",
     },
   },
+  antigravity: {
+    label: "Google Antigravity",
+    // Antigravity nativamente lê AGENTS.md e o diretório .agents/ (mesmo padrão do Codex).
+    detect: [".agents", "AGENTS.md", ".antigravity"],
+    project: {
+      copies: [[".agents/skills/intake-refiner/SKILL.md", ".agents/skills/intake-refiner/SKILL.md"]],
+      contract: "AGENTS.md", skillRef: ".agents/skills/intake-refiner/SKILL.md",
+    },
+  },
   copilot: {
     label: "GitHub Copilot",
     detect: [".github/copilot-instructions.md"],
@@ -100,6 +109,13 @@ const TARGETS = {
     detect: [".windsurfrules"],
     project: { copies: [[".windsurfrules", ".windsurfrules"]] },
   },
+  zed: {
+    label: "Zed",
+    // Zed usa `.rules` como arquivo de regras padrão do projeto. Injetamos um
+    // bloco marcado (nunca sobrescreve o `.rules` do usuário).
+    detect: [".rules", ".zed"],
+    project: { contract: ".rules", skillRef: "docs/INTAKE-PROTOCOL.md" },
+  },
   aider: {
     label: "Aider",
     detect: [".aider.conf.yml", "CONVENTIONS.md"],
@@ -109,7 +125,7 @@ const TARGETS = {
     },
   },
 };
-const ORDER = ["claude", "codex", "copilot", "cursor", "cline", "windsurf", "aider"];
+const ORDER = ["claude", "codex", "antigravity", "copilot", "cursor", "cline", "windsurf", "zed", "aider"];
 
 function parseArgs(argv) {
   const a = { targets: null, scope: null, yes: false, list: false, help: false, version: false };

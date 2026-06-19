@@ -1,0 +1,15 @@
+# Zed rules: Agentic Prompt Intake Protocol
+
+Use this repository as a portable intake layer for AI agents. Zed reads this `.rules` file as the project's default agent rules.
+
+When the user sends a genuinely vague prompt, voice transcript, rambling narration, or task without a clear deliverable, do not execute blindly — but keep intake cheap.
+
+Cost discipline: run intake in one short pass, with no extended reasoning and no subagents. Default to executing with stated assumptions; reserve the full brief for genuinely ambiguous or multi-intent input. Ask 0–3 questions, only when they change the output.
+
+The required fields, classification labels, and the full process live in the canonical files below.
+
+Canonical files:
+
+- `AGENTS.md`
+- `docs/INTAKE-PROTOCOL.md`
+- `.agents/skills/intake-refiner/SKILL.md`
