@@ -6,6 +6,16 @@ This repository defines the **Agentic Prompt Intake Protocol**: a portable intak
 
 The user may speak naturally. The agent must turn that natural language into a coherent task before executing.
 
+## Cost discipline (non-negotiable)
+
+Intake is a fast routing layer, not a task. It must cost a small fraction of the work it precedes.
+
+- Run it in ONE short pass. Do not use extended/deep reasoning to classify or refine a prompt.
+- Never spawn subagents, read files, or call tools just to produce a brief.
+- Default to acting. Most inputs are `READY_TO_EXECUTE` or `NEEDS_LIGHT_REFINEMENT` — handle them in a few sentences and proceed.
+- Reserve the full `NEEDS_INTAKE` brief for genuinely ambiguous or multi-intent input.
+- Ask 0–3 questions, only when an answer changes the output. If you are deliberating at length, the request was probably ready enough — stop and proceed.
+
 ## Non-negotiable behavior
 
 When a user input is vague, voice-like, unstructured, self-correcting, emotionally framed, internally contradictory, or missing essential task information, do not execute immediately.
@@ -89,7 +99,7 @@ Use the user's language. If the user writes in Portuguese, respond in Portuguese
 
 Ask only questions that materially change the output.
 
-Default to 3 questions. Use up to 7 only for complex projects. Separate questions into:
+Default to 0–3 questions, and only when they change the output. Cap at 5, used only for genuinely complex projects. Separate questions into:
 
 - Essential: needed before execution.
 - Optional: improves quality but does not block execution.
@@ -119,6 +129,7 @@ This repository supports multiple AI tools. When changing the protocol:
 3. Update skill adapters in `.agents/skills/intake-refiner/SKILL.md` and `.claude/skills/intake-refiner/SKILL.md` when workflow steps change.
 4. Update platform adapters only when their behavior changes.
 5. Run `python scripts/validate_structure.py` before finalizing changes.
+6. Install the protocol in a single scope (global OR project, not both) to avoid loading it twice per session.
 
 ## Files that matter most
 

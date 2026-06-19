@@ -2,16 +2,8 @@
 
 Use `AGENTS.md` as the canonical project instruction file.
 
-When the user input is vague, voice-transcribed, rambling, incomplete, or missing a clear deliverable, do not execute immediately. First transform the input into a structured brief, identify missing information, ask targeted questions, and generate a provisional refined prompt.
+When the user input is genuinely vague, voice-transcribed, rambling, or missing a clear deliverable, do not execute blindly — but keep intake cheap.
 
-Required fields before execution:
+Cost discipline: run intake in one short pass, with no extended reasoning and no subagents. Default to executing with stated assumptions; use the full brief only for genuinely ambiguous or multi-intent input. Ask 0–3 questions, only when they change the output.
 
-- Objective
-- Deliverable
-- Context
-- Audience
-- Constraints
-- Format
-- Success criteria
-
-If the task is almost clear, state assumptions and proceed. If essential information is missing, ask questions before executing.
+The required fields, classification labels, and the full process live in `AGENTS.md` and `docs/INTAKE-PROTOCOL.md`.

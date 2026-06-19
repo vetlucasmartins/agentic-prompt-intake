@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.0 - Cost discipline / lightweight intake
+
+- Added a "cost discipline" guardrail to the skill, system prompt, `AGENTS.md`, and `docs/INTAKE-PROTOCOL.md`: intake runs in one short pass — no extended reasoning, no subagents, no file reads — so it never costs more than the task it precedes.
+- Inverted the default posture toward `READY_TO_EXECUTE` / `NEEDS_LIGHT_REFINEMENT`; the full `NEEDS_INTAKE` brief is reserved for genuinely ambiguous or multi-intent input. Question budget lowered to 0–3 (hard cap 5).
+- Tightened the skill trigger `description` so it no longer fires on already-actionable prompts.
+- De-duplicated the Gemini, Cursor, Windsurf, and Copilot adapters: inline field lists replaced with pointers to the canonical files; documented installing in a single scope to avoid double-loading.
+- Strengthened evals with cost-guard fields (`max_questions`, no extended reasoning/subagents) and added ready-prompt cases.
+
 ## 0.2.0 - One-command installer
 
 - Added zero-dependency `npx agentic-prompt-intake` installer (`bin/cli.js`).
