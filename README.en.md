@@ -12,7 +12,9 @@ This project complements that idea with a step that is usually missing. Speaking
 
 In one line: **you speak the way you think; the agent clarifies before it acts.**
 
-See the before/after in the [demo](docs/DEMO.md).
+![Demo: from loose speech to an executable brief](docs/demo.gif)
+
+> See the full walkthrough in the [demo](docs/DEMO.md).
 
 ## What this repository provides
 

@@ -12,7 +12,9 @@ A proposta aqui complementa essa ideia com uma etapa que costuma faltar. Falar n
 
 Em uma frase: **você fala como pensa; o agente clarifica antes de agir.**
 
-Veja o antes/depois na [demo](docs/DEMO.md).
+![Demo: da fala solta ao brief executável](docs/demo.gif)
+
+> Veja o passo a passo na [demo](docs/DEMO.md).
 
 ## O que este repositório entrega
 

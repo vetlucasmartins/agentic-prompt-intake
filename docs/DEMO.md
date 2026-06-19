@@ -2,7 +2,9 @@
 
 Esta página mostra, passo a passo, o que o protocolo faz na prática. A ideia é simples: você fala como pensa, e o agente clarifica antes de agir.
 
-> Dica: para gravar sua própria demo em terminal, use [asciinema](https://asciinema.org) (`asciinema rec demo.cast`) e cole o link aqui. Para um GIF, exporte com [agg](https://github.com/asciinema/agg).
+![Demo: da fala solta ao brief executável](demo.gif)
+
+> O GIF acima é gerado por [`scripts/gen_demo_gif.py`](../scripts/gen_demo_gif.py) (`python3 scripts/gen_demo_gif.py`). Para gravar sua própria demo em terminal real, use [asciinema](https://asciinema.org) (`asciinema rec demo.cast`) e exporte um GIF com [agg](https://github.com/asciinema/agg).
 
 ## Antes / Depois
 
