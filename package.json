@@ -1,11 +1,51 @@
 {
   "name": "agentic-prompt-intake",
-  "version": "0.1.0",
-  "description": "Portable prompt intake protocol for AI agents.",
+  "version": "0.2.0",
+  "description": "Portable prompt intake protocol for AI agents — installs the conversational intake layer into Claude Code, Codex, Copilot, Cursor, Cline, Windsurf or Aider with one command.",
   "private": false,
   "license": "MIT",
+  "bin": {
+    "agentic-prompt-intake": "bin/cli.js",
+    "intake-refiner": "bin/cli.js"
+  },
   "scripts": {
-    "validate": "python scripts/validate_structure.py"
+    "validate": "python3 scripts/validate_structure.py",
+    "start": "node bin/cli.js"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "files": [
+    "bin/",
+    "prompts/",
+    "schemas/",
+    "templates/",
+    "docs/",
+    "examples/",
+    "evals/",
+    "scripts/",
+    ".claude/",
+    ".agents/",
+    ".cursor/",
+    ".clinerules/",
+    ".github/",
+    ".windsurfrules",
+    ".aider.conf.yml",
+    "AGENTS.md",
+    "CLAUDE.md",
+    "GEMINI.md",
+    "CONVENTIONS.md",
+    "README.md",
+    "README.en.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vetlucasmartins/agentic-prompt-intake.git"
+  },
+  "homepage": "https://github.com/vetlucasmartins/agentic-prompt-intake#readme",
+  "bugs": {
+    "url": "https://github.com/vetlucasmartins/agentic-prompt-intake/issues"
   },
   "keywords": [
     "agents",
@@ -13,6 +53,12 @@
     "prompting",
     "intake",
     "ai",
-    "skills"
+    "skills",
+    "claude-code",
+    "codex",
+    "cursor",
+    "copilot",
+    "cli",
+    "npx"
   ]
 }

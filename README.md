@@ -16,6 +16,31 @@ Em uma frase: **você fala como pensa; o agente clarifica antes de agir.**
 
 > Veja o passo a passo na [demo](docs/DEMO.md).
 
+## Instalação em 1 comando
+
+Não precisa saber mexer em `.claude/`, `.cursor/` ou `AGENTS.md`. Na pasta do seu projeto, rode:
+
+```bash
+npx agentic-prompt-intake
+```
+
+O instalador **detecta sua ferramenta** (Claude Code, Codex, GitHub Copilot, Cursor, Cline, Windsurf ou Aider), pergunta se a instalação é no **projeto atual** ou **global** (toda a máquina), e coloca os arquivos certos no lugar certo. Ele **nunca sobrescreve** o seu `CLAUDE.md`/`AGENTS.md` — apenas adiciona um bloco marcado e idempotente.
+
+Enquanto a publicação no npm não sai, você já pode rodar direto do GitHub:
+
+```bash
+npx github:vetlucasmartins/agentic-prompt-intake
+```
+
+Modo não interativo (para scripts/CI):
+
+```bash
+npx agentic-prompt-intake --target claude,cursor --scope project --yes
+npx agentic-prompt-intake --list      # lista todos os alvos
+```
+
+> Prefere instalar manualmente? Veja [Instalação rápida por plataforma](#instalação-rápida-por-plataforma) mais abaixo.
+
 ## O que este repositório entrega
 
 Este repositório fornece uma camada de **intake conversacional** para agentes de IA. Ela detecta quando uma entrada não está pronta para execução, organiza a intenção do usuário, identifica lacunas críticas, faz perguntas objetivas e gera um brief/prompt refinado.
