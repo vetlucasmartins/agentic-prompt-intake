@@ -1,5 +1,18 @@
 # Intake Protocol
 
+## 0. Cost discipline (read this first)
+
+Intake is a lightweight routing decision, not a task in itself. It must cost a small fraction of the work it precedes.
+
+- Run intake in ONE short pass. Do not use extended/deep reasoning to classify or refine a prompt.
+- Never spawn subagents, read files, or call tools just to produce a brief.
+- Bias to the cheapest outcome. Most inputs are `READY_TO_EXECUTE` or `NEEDS_LIGHT_REFINEMENT` — handle them in a few sentences and proceed.
+- Reserve the full `NEEDS_INTAKE` brief (sections 5–7 and 12) for genuinely ambiguous or multi-intent input.
+- Ask 0–3 questions, only when an answer changes the output. Prefer a stated assumption over a question.
+- If you are deliberating at length, the request was probably ready enough — stop and proceed.
+
+Install the protocol in a single scope (global OR project, not both) so it is not loaded twice per session.
+
 ## 1. Definition
 
 The Agentic Prompt Intake Protocol is a pre-execution procedure for AI agents. It converts raw human language into a task that can be executed with a reasonable chance of producing the intended result.
@@ -124,9 +137,9 @@ These improve quality but do not necessarily block execution. Examples:
 
 ## 7. Question strategy
 
-Ask fewer, better questions.
+Ask fewer, better questions. Prefer a stated assumption over a question.
 
-Default to three questions:
+Default to 0–3 questions, and only when they change the output:
 
 1. What exact output do you want?
 2. Who is it for?

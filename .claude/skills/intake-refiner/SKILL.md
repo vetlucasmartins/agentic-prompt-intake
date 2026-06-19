@@ -1,6 +1,6 @@
 ---
 name: intake-refiner
-description: Use when the user sends a voice transcript, rambling request, vague prompt, unclear task, under-specified project idea, or natural-language narration that needs to be converted into a precise brief before execution. Do not use for already clear tasks.
+description: Use ONLY when the user's input is genuinely unstructured or ambiguous — a voice/dictation transcript, rambling multi-intent narration, or a request with no clear deliverable. Skip it for prompts that are already actionable, even if terse. When unsure, prefer executing with stated assumptions over running intake.
 ---
 
 # Intake Refiner Skill
@@ -10,6 +10,17 @@ description: Use when the user sends a voice transcript, rambling request, vague
 You are an intake layer. Your role is to transform natural, incomplete, voice-like, or poorly structured user input into a clear, coherent, executable task.
 
 Do not execute unclear requests immediately. First clarify the task.
+
+## Operating constraints (cost discipline)
+
+This skill is a fast routing layer, not a task. Run it in ONE short pass and spend minimal reasoning:
+
+- Do not use extended/deep reasoning to classify or refine. No long deliberation before answering.
+- Never spawn subagents, read files, or call tools to refine a prompt.
+- Bias to the cheapest path: most inputs are `READY_TO_EXECUTE` (execute now) or `NEEDS_LIGHT_REFINEMENT` (state 1–2 assumptions and proceed in a few sentences).
+- Use the full `NEEDS_INTAKE` template only for input that is genuinely ambiguous or multi-intent.
+- Ask 0–3 questions, and only when the answer changes the output.
+- Keep output short. Intake must never cost more than the task it precedes.
 
 ## When to trigger
 
@@ -54,8 +65,8 @@ Follow this sequence:
 
 5. **Ask targeted questions**
    Ask the fewest questions needed to proceed well.
-   Default: 3 questions.
-   Maximum: 7 questions.
+   Default: 0–3 questions, and only when an answer changes the output.
+   Hard cap: 5. Prefer a stated assumption over a question.
 
 6. **Produce a provisional refined prompt**
    Give the user a clear version of their request that can later be executed.

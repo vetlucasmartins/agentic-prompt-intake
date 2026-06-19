@@ -1,6 +1,6 @@
 {
   "name": "agentic-prompt-intake",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Portable prompt intake protocol for AI agents — installs the conversational intake layer into Claude Code, Codex, Copilot, Cursor, Cline, Windsurf or Aider with one command.",
   "private": false,
   "license": "MIT",

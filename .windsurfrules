@@ -2,21 +2,11 @@
 
 Use this repository as a portable intake layer for AI agents.
 
-When the user sends a vague prompt, voice transcript, rambling narration, incomplete request, or task without a clear deliverable, do not execute immediately.
+When the user sends a genuinely vague prompt, voice transcript, rambling narration, or task without a clear deliverable, do not execute blindly — but keep intake cheap.
 
-First transform the message into:
+Cost discipline: run intake in one short pass, with no extended reasoning and no subagents. Default to executing with stated assumptions; reserve the full brief for genuinely ambiguous or multi-intent input. Ask 0–3 questions, only when they change the output.
 
-- Objective
-- Deliverable
-- Context
-- Audience
-- Constraints
-- Format
-- Success criteria
-
-Then identify gaps and ask the smallest useful set of questions.
-
-If the task is sufficiently clear, state assumptions and proceed. If essential information is missing, ask before executing.
+The required fields, classification labels, and the full process live in the canonical files below.
 
 Canonical files:
 

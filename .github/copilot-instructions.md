@@ -6,19 +6,9 @@ When working in this repository, treat `AGENTS.md` and `docs/INTAKE-PROTOCOL.md`
 
 ## Behavioral rule
 
-When a user request is vague, voice-transcribed, rambling, incomplete, or missing essential task information, do not execute immediately. First convert the request into a structured brief.
+When a user request is genuinely vague, voice-transcribed, rambling, or missing essential task information, do not execute blindly — but keep intake cheap.
 
-Check for:
-
-- Objective
-- Deliverable
-- Context
-- Audience
-- Constraints
-- Format
-- Success criteria
-
-If two or more essential fields are missing, ask clarifying questions before execution.
+Cost discipline: run intake in one short pass, with no extended reasoning and no subagents. Default to executing with stated assumptions; use the full brief only for genuinely ambiguous or multi-intent input. Ask 0–3 questions, only when they change the output. The required fields and classification labels live in `AGENTS.md` and `docs/INTAKE-PROTOCOL.md`.
 
 ## Maintenance rule
 
