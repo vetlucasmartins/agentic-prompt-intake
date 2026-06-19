@@ -73,6 +73,16 @@ Use the router to classify the request as:
 
 The agent should only execute directly when the request is sufficiently clear or when safe assumptions can be explicitly stated.
 
+## How it compares (prior art)
+
+"Clarify before executing" isn't new — the packaging is what's rare. Nearby projects:
+
+- [severity1/claude-code-prompt-improver](https://github.com/severity1/claude-code-prompt-improver) — improves the prompt via a hook, but is Claude-Code-only and rewrites instead of asking.
+- [linxaiolu/prompt-clarifier](https://github.com/linxaiolu/prompt-clarifier), [lbexplorer/PromptClarifier](https://github.com/lbexplorer/PromptClarifier) — turn vague ideas into structured prompts, but are single-tool with little traction.
+- Refiners like [JacobHuang91/prompt-refiner](https://github.com/JacobHuang91/prompt-refiner) rewrite prompts, with no intake step.
+
+**What sets this project apart** is the combination: (1) **portable** across 7 tools via `AGENTS.md` + adapters, (2) **intake** with a brief, gaps and a decision router rather than just rewriting, and (3) a **one-command `npx` install** built for non-developers.
+
 ## License
 
 MIT.

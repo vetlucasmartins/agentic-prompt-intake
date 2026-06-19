@@ -226,6 +226,16 @@ Perguntas:
 3. Você quer primeiro decidir o formato ou já construir uma oferta preliminar?
 ```
 
+## Como se compara (prior art)
+
+A ideia de "clarificar antes de executar" não é inédita — o que é raro é o empacotamento. Projetos próximos:
+
+- [severity1/claude-code-prompt-improver](https://github.com/severity1/claude-code-prompt-improver) — melhora o prompt via hook, mas é só Claude Code e reescreve em vez de fazer perguntas.
+- [linxaiolu/prompt-clarifier](https://github.com/linxaiolu/prompt-clarifier), [lbexplorer/PromptClarifier](https://github.com/lbexplorer/PromptClarifier) — transformam ideia vaga em prompt estruturado, mas são single-tool e sem tração.
+- Refinadores como [JacobHuang91/prompt-refiner](https://github.com/JacobHuang91/prompt-refiner) reescrevem prompts, sem etapa de anamnese.
+
+**O diferencial deste projeto** é a combinação: (1) **portátil** entre 7 ferramentas via `AGENTS.md` + adapters, (2) **anamnese** com brief, lacunas e router de decisão em vez de só reescrever, e (3) **instalação `npx` em 1 comando** pensada para quem não é dev.
+
 ## Princípios
 
 1. A IA deve acolher a linguagem natural, mas não deve fingir que um pedido vago é uma tarefa pronta.
