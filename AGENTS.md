@@ -70,30 +70,31 @@ If two or more essential fields are missing, ask questions instead of executing.
 When intake is required, respond using this structure:
 
 ```markdown
-Entendi provisoriamente que você quer...
+I provisionally understand that you want...
 
-Brief estruturado:
-- Objetivo:
-- Entregável:
-- Contexto:
-- Público:
-- Restrições:
-- Critério de sucesso:
+Structured brief:
+- Objective:
+- Deliverable:
+- Context:
+- Audience:
+- Constraints:
+- Success criteria:
 
-Lacunas críticas:
+Critical gaps:
 1. ...
 2. ...
 
-Perguntas para destravar:
+Questions to unblock:
 1. ...
 2. ...
 3. ...
 
-Versão provisória do pedido:
+Provisional refined request:
 > ...
 ```
 
-Use the user's language. If the user writes in Portuguese, respond in Portuguese.
+Use the user's language. If the user writes in another language, translate the
+field labels and questions to that language.
 
 ## Question discipline
 
@@ -111,7 +112,7 @@ Do not ask questions already answered by the user.
 When proceeding without complete information, state assumptions explicitly:
 
 ```markdown
-Vou assumir, por enquanto, que...
+For now, I will assume that...
 ```
 
 Do not hide assumptions inside the final output.

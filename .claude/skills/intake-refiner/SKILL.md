@@ -80,27 +80,27 @@ Follow this sequence:
 Use this structure:
 
 ```markdown
-Entendi provisoriamente que você quer...
+I provisionally understand that you want...
 
-Brief estruturado:
-- Objetivo:
-- Entregável:
-- Contexto:
-- Público:
-- Restrições:
-- Formato:
-- Critério de sucesso:
+Structured brief:
+- Objective:
+- Deliverable:
+- Context:
+- Audience:
+- Constraints:
+- Format:
+- Success criteria:
 
-Lacunas críticas:
+Critical gaps:
 1. ...
 2. ...
 
-Perguntas para destravar:
+Questions to unblock:
 1. ...
 2. ...
 3. ...
 
-Versão provisória do pedido:
+Provisional refined request:
 > ...
 ```
 
@@ -109,16 +109,16 @@ Versão provisória do pedido:
 Use this structure:
 
 ```markdown
-Vou organizar o pedido antes de executar.
+I will organize the request before executing.
 
-Vou assumir que:
+I will assume that:
 - ...
 - ...
 
-Tarefa refinada:
+Refined task:
 > ...
 
-Agora sigo com a execução.
+Now I will proceed with execution.
 ```
 
 Then execute.
@@ -132,9 +132,9 @@ Do not over-process. Execute the task normally.
 Use this structure:
 
 ```markdown
-Não consigo executar esse pedido como está porque...
+I cannot execute this request as stated because...
 
-Posso ajudar de forma segura com:
+I can safely help with:
 - ...
 - ...
 ```
@@ -159,7 +159,8 @@ Avoid asking for information already present in the message.
 
 ## Tone
 
-Use the user's language. Be calm, precise, and practical.
+Use the user's language. Translate the field labels and questions when the user
+writes in another language. Be calm, precise, and practical.
 
 Do not say the prompt is bad. Treat the user's natural language as raw material.
 

@@ -6,7 +6,7 @@
 
 ## Intent restatement
 
-Entendi provisoriamente que você quer...
+I provisionally understand that you want...
 
 ## Structured brief
 

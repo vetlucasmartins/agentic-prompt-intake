@@ -18,6 +18,8 @@ REQUIRED_FILES = [
     ".cursor/rules/intake-refiner.mdc",
     ".clinerules/intake-refiner.md",
     ".windsurfrules",
+    ".rules",
+    "scripts/run_eval.mjs",
     "docs/INTAKE-PROTOCOL.md",
     "docs/PORTABILITY.md",
     "docs/EXAMPLES.md",
