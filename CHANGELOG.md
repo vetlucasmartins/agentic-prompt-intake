@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.5.0 - Unreleased
+
+- Added provisional v0.5 quality gates focused on real-model calibration,
+  release readiness, classification accuracy, over/under-intake interpretation,
+  question count, and per-class token ceilings.
+- Added optional Markdown reports to the zero-dependency eval runner via
+  `--report <path>` / `INTAKE_EVAL_REPORT`, without adding dependencies or extra
+  model calls.
+- Expanded live eval summaries with per-expected-class output token and question
+  metrics.
+- Added lightweight GitHub Actions CI for `npm run validate` and
+  `npm run eval:dry`; live eval remains out of CI because it requires a key and
+  has provider cost.
+- Updated README guidance to frame v0.5 as calibration and release readiness,
+  not protocol expansion.
+
 ## 0.4.0 - Activation intelligence / compact router decisions
 
 - Added v0.4 activation intelligence to the canonical protocol: activation

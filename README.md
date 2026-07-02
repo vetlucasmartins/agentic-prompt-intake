@@ -32,6 +32,10 @@ activation/suppression signals, readiness and ambiguity scores, and a compact
 decision summary so users can see why intake did or did not run without reading
 a long brief.
 
+The next `v0.5` phase is about calibration, metrics, and release readiness. It
+does not expand the protocol; it checks whether the existing one-pass intake
+layer works on real models without becoming expensive.
+
 ## What you get
 
 - A cross-agent contract in `AGENTS.md`.
@@ -42,6 +46,8 @@ a long brief.
 - Router prompts, a JSON schema, reusable templates, examples, and eval cases.
 - A validation script and zero-dependency eval runner for checking structure,
   classification, questions, token cost, and over/under-trigger behavior.
+- v0.5 quality gates and optional local Markdown eval reports for release
+  calibration.
 
 ## Install
 
@@ -133,6 +139,33 @@ Questions: 0-1
 Next: State assumptions and proceed.
 ```
 
+## Calibration and release readiness
+
+The protocol is only useful if it avoids both premature execution and
+unnecessary clarification. The v0.5 calibration workflow measures that directly:
+
+```bash
+npm run validate
+npm run eval:dry
+npm run eval -- --report reports/intake-eval-v0.5.md
+```
+
+`npm run eval:dry` is CI-friendly and makes no network calls. `npm run eval`
+runs the same cases against a model and requires `INTAKE_EVAL_API_KEY`,
+`ANTHROPIC_API_KEY`, or `OPENAI_API_KEY` with the matching provider settings.
+Do not put the live eval in CI by default; it depends on credentials and costs
+money.
+
+The live summary reports classification accuracy, average output tokens, p95
+output tokens, average questions, and over/under-intake candidates. Over-intake
+means the model chose a heavier clarification mode than expected, creating
+friction and cost. Under-intake means it chose a lighter mode than expected, so
+it may execute too early or fail to block unsafe input.
+
+See [docs/QUALITY-GATES.md](docs/QUALITY-GATES.md) for provisional v0.5 release
+targets. They are intentionally conservative until multiple real model runs
+provide stronger evidence.
+
 ## When to trigger intake
 
 Use intake when the user input looks like:
@@ -200,12 +233,14 @@ Questions to unblock:
 ├── .claude/skills/intake-refiner/SKILL.md         # Claude Code skill
 ├── .github/copilot-instructions.md                # GitHub Copilot repo instructions
 ├── .github/instructions/intake-refiner.instructions.md
+├── .github/workflows/ci.yml                       # Lightweight local checks
 ├── .cursor/rules/intake-refiner.mdc               # Cursor rule
 ├── .clinerules/intake-refiner.md                  # Cline rule
 ├── .windsurfrules                                 # Windsurf rule
 ├── .rules                                         # Zed rule
 ├── docs/INTAKE-PROTOCOL.md                        # Canonical protocol
 ├── docs/PORTABILITY.md                            # Tool compatibility guide
+├── docs/QUALITY-GATES.md                          # v0.5 calibration targets
 ├── docs/DEMO.md                                   # Demo walkthrough
 ├── docs/EXAMPLES.md                               # More examples
 ├── prompts/system-intake.md                       # System prompt for custom agents
@@ -217,6 +252,7 @@ Questions to unblock:
 ├── examples/vague-prompt.md                       # Example under-specified input
 ├── evals/intake-cases.jsonl                       # Behavior eval cases
 ├── scripts/run_eval.mjs                           # Eval runner
+├── scripts/eval_report.mjs                        # Eval summary/report helpers
 └── scripts/validate_structure.py                  # Structure validator
 ```
 
@@ -253,7 +289,7 @@ To run the cases against a model:
 export ANTHROPIC_API_KEY=sk-...           # or INTAKE_EVAL_API_KEY
 export INTAKE_EVAL_PROVIDER=anthropic     # default; "openai" is also supported
 export INTAKE_EVAL_MODEL=claude-haiku-4-5-20251001
-npm run eval
+npm run eval -- --report reports/intake-eval-v0.5.md
 ```
 
 The runner makes one model call per case, with no tools, `temperature 0`, and a
@@ -261,7 +297,10 @@ bounded token budget. It scores schema shape, classification, signal
 expectations, question budget, required questions, forbidden behaviors, stated
 assumptions, and token cost ceilings. The summary reports classification
 accuracy, average and p95 output tokens, average questions, and over/under-intake
-candidates.
+candidates, plus output-token and question averages by expected class.
+
+The `--report` flag writes the same results to a local Markdown file. It does
+not add model calls or change scoring.
 
 ## Maintain the protocol
 

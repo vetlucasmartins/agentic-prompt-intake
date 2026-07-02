@@ -22,26 +22,20 @@
  * Zero dependencies: native `https` only, so it honors package.json engines
  * (node >=16) and does NOT require Node 18's global fetch.
  *
- * Usage:
- *   node scripts/run_eval.mjs --dry-run      # validate jsonl + static asserts, no network
- *   node scripts/run_eval.mjs                # run the cases against the model
- *   INTAKE_EVAL_PROVIDER=anthropic INTAKE_EVAL_MODEL=claude-haiku-4-5-20251001 \
- *     ANTHROPIC_API_KEY=sk-... node scripts/run_eval.mjs
- *
- * Env:
- *   INTAKE_EVAL_PROVIDER   anthropic (default) | openai
- *   INTAKE_EVAL_MODEL      model id (defaults per provider)
- *   INTAKE_EVAL_API_KEY    API key (falls back to ANTHROPIC_API_KEY / OPENAI_API_KEY)
- *   INTAKE_EVAL_BASE_URL   override endpoint (advanced)
- *   INTAKE_EVAL_MAX_TOKENS hard max_tokens for the call (default 1024)
- *   INTAKE_EVAL_CEILING_<CLASS>  override the output-token ceiling for a class
- *   INTAKE_EVAL_PRICE_IN / INTAKE_EVAL_PRICE_OUT  USD per 1M tokens (optional $ estimate)
+ * Run with --help for CLI options and environment variables.
  */
 
 import fs from "node:fs";
 import path from "node:path";
 import https from "node:https";
 import { fileURLToPath } from "node:url";
+import {
+  dryRunMarkdownReport,
+  liveMarkdownReport,
+  summarizeIds,
+  summarizeLiveRows,
+  writeMarkdownReport,
+} from "./eval_report.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
@@ -93,7 +87,15 @@ const FAIL = () => col("red", "FAIL");
 // args
 // ---------------------------------------------------------------------------
 function parseArgs(argv) {
-  const a = { dryRun: false, file: "evals/intake-cases.jsonl", provider: null, model: null, limit: null, help: false };
+  const a = {
+    dryRun: false,
+    file: "evals/intake-cases.jsonl",
+    provider: null,
+    model: null,
+    limit: null,
+    report: null,
+    help: false,
+  };
   for (let i = 0; i < argv.length; i++) {
     const v = argv[i];
     if (v === "--dry-run") a.dryRun = true;
@@ -106,6 +108,8 @@ function parseArgs(argv) {
     else if (v.startsWith("--model=")) a.model = v.slice(8);
     else if (v === "--limit") a.limit = parseInt(argv[++i], 10);
     else if (v.startsWith("--limit=")) a.limit = parseInt(v.slice(8), 10);
+    else if (v === "--report") a.report = argv[++i];
+    else if (v.startsWith("--report=")) a.report = v.slice(9);
   }
   return a;
 }
@@ -126,11 +130,13 @@ ${col("bold", "Options")}
   --model <id>         model id (defaults per provider)
   --file <path>        cases file (default evals/intake-cases.jsonl)
   --limit <n>          run only the first n cases
+  --report <path>      write a local markdown report (no extra model calls)
   --help, -h           this help
 
 ${col("bold", "Env")}
   INTAKE_EVAL_PROVIDER, INTAKE_EVAL_MODEL, INTAKE_EVAL_API_KEY
-  ANTHROPIC_API_KEY / OPENAI_API_KEY, INTAKE_EVAL_BASE_URL, INTAKE_EVAL_MAX_TOKENS
+  ANTHROPIC_API_KEY / OPENAI_API_KEY, INTAKE_EVAL_BASE_URL, INTAKE_EVAL_REPORT
+  INTAKE_EVAL_MAX_TOKENS
   INTAKE_EVAL_CEILING_<CLASS>, INTAKE_EVAL_PRICE_IN, INTAKE_EVAL_PRICE_OUT
 `);
 }
@@ -582,57 +588,39 @@ function scoreCase(c, decision, usage) {
 // ---------------------------------------------------------------------------
 // reporting
 // ---------------------------------------------------------------------------
-function percentile(values, p) {
-  if (!values.length) return 0;
-  const sorted = [...values].sort((a, b) => a - b);
-  const idx = Math.min(sorted.length - 1, Math.ceil((p / 100) * sorted.length) - 1);
-  return sorted[Math.max(0, idx)];
-}
-
 function pad(s, n) {
   s = String(s);
   return s.length >= n ? s.slice(0, n) : s + " ".repeat(n - s.length);
 }
 
-function activationRank(cls) {
-  if (cls === "READY_TO_EXECUTE") return 0;
-  if (cls === "NEEDS_LIGHT_REFINEMENT") return 1;
-  if (cls === "NEEDS_INTAKE") return 2;
-  return null;
+function reportTarget(args) {
+  const target = args.report || process.env.INTAKE_EVAL_REPORT;
+  return target && target.trim() ? target.trim() : null;
 }
 
-function overIntakeCandidate(row) {
-  const expected = activationRank(row.expected);
-  const actual = activationRank(row.classification);
-  return expected !== null && actual !== null && actual > expected;
-}
-
-function underIntakeCandidate(row) {
-  const expected = activationRank(row.expected);
-  const actual = activationRank(row.classification);
-  if (row.expected === "BLOCKED") return row.classification && row.classification !== "BLOCKED";
-  return expected !== null && actual !== null && actual < expected;
-}
-
-function summarizeIds(rows) {
-  if (!rows.length) return "none";
-  return rows.map((row) => row.id).join(", ");
+function writeReportIfRequested(args, markdown) {
+  const displayPath = writeMarkdownReport(reportTarget(args), ROOT, markdown);
+  if (!displayPath) return;
+  console.log(col("dim", `  markdown report written to ${displayPath}`));
 }
 
 // ---------------------------------------------------------------------------
 // dry-run
 // ---------------------------------------------------------------------------
-function runDry(cases, loadErrors) {
+function runDry(cases, loadErrors, args) {
   console.log(col("bold", "\nDry run — schema + static cost-guard asserts (no network)\n"));
   let errors = [...loadErrors];
+  const rows = [];
   cases.forEach((c, i) => {
     const e = validateCase(c, i);
     errors = errors.concat(e);
     const ok = e.length === 0;
+    rows.push({ id: c.id || `case[${i}]`, expected: c.expected_classification, pass: ok, errors: e });
     console.log(`  ${ok ? PASS() : FAIL()}  ${pad(c.id || `case[${i}]`, 32)} ${col("dim", c.expected_classification || "?")}`);
     e.forEach((msg) => console.log(`        ${col("red", msg)}`));
   });
   console.log("");
+  writeReportIfRequested(args, dryRunMarkdownReport({ args, rows, errors }));
   if (errors.length) {
     console.log(col("red", `✗ ${errors.length} error(s); ${cases.length} case(s) checked.`));
     return 1;
@@ -700,15 +688,9 @@ async function runLive(cases, args) {
   );
   console.log("  " + col("dim", "-".repeat(76)));
   let passed = 0;
-  const outTokens = [];
-  let totalIn = 0;
-  let totalOut = 0;
   for (const row of rows) {
     const allPass = row.checks.every((ch) => ch.pass);
     if (allPass) passed++;
-    totalIn += row.inputTokens || 0;
-    totalOut += row.outputTokens || 0;
-    if (row.outputTokens != null) outTokens.push(row.outputTokens);
     const costCheck = (row.checks || []).find((ch) => ch.name === "cost");
     const costStr = costCheck ? (costCheck.pass ? col("green", "ok") : col("red", "OVER")) : "-";
     console.log(
@@ -728,48 +710,55 @@ async function runLive(cases, args) {
   }
 
   // summary
-  const n = rows.length;
-  const classificationCorrect = rows.filter((row) => row.classification === row.expected).length;
-  const classificationAccuracy = n ? ((classificationCorrect / n) * 100).toFixed(0) : "0";
-  const passRate = n ? ((passed / n) * 100).toFixed(0) : "0";
-  const avgOut = outTokens.length ? Math.round(outTokens.reduce((a, b) => a + b, 0) / outTokens.length) : 0;
-  const p95Out = percentile(outTokens, 95);
-  const questionCounts = rows.filter((row) => Number.isFinite(row.numQuestions)).map((row) => row.numQuestions);
-  const avgQuestions = questionCounts.length
-    ? (questionCounts.reduce((a, b) => a + b, 0) / questionCounts.length).toFixed(2)
-    : "0.00";
-  const overRows = rows.filter(overIntakeCandidate);
-  const underRows = rows.filter(underIntakeCandidate);
+  const summary = summarizeLiveRows(rows, CLASSES, ceilingFor, passed);
   console.log("\n" + col("bold", "  Summary"));
-  console.log(`    cases passed              ${passed}/${n} (${passRate}%)`);
-  console.log(`    classification accuracy   ${classificationCorrect}/${n} (${classificationAccuracy}%)`);
-  console.log(`    tokens (in/out)           ${totalIn} / ${totalOut}`);
-  console.log(`    avg output tokens         ${avgOut}`);
-  console.log(`    p95 output tokens         ${p95Out}`);
-  console.log(`    avg questions             ${avgQuestions}`);
-  console.log(`    over-intake candidates    ${overRows.length} (${summarizeIds(overRows)})`);
-  console.log(`    under-intake candidates   ${underRows.length} (${summarizeIds(underRows)})`);
+  console.log(`    cases passed              ${summary.passed}/${summary.n} (${summary.passRate})`);
+  console.log(
+    `    classification accuracy   ${summary.classificationCorrect}/${summary.n} (${summary.classificationAccuracy})`
+  );
+  console.log(`    tokens (in/out)           ${summary.totalIn} / ${summary.totalOut}`);
+  console.log(`    avg output tokens         ${summary.avgOutputTokens}`);
+  console.log(`    p95 output tokens         ${summary.p95OutputTokens}`);
+  console.log(`    avg questions             ${summary.avgQuestions}`);
+  console.log(`    over-intake candidates    ${summary.overRows.length} (${summarizeIds(summary.overRows)})`);
+  console.log(`    under-intake candidates   ${summary.underRows.length} (${summarizeIds(summary.underRows)})`);
+  console.log("\n" + col("bold", "  By expected class"));
+  console.log("    " + col("bold", pad("class", 24) + pad("cases", 7) + pad("avg out", 9) + pad("p95 out", 9) + pad("ceiling", 9) + "avg q"));
+  console.log("    " + col("dim", "-".repeat(70)));
+  for (const row of summary.byClass) {
+    console.log(
+      "    " +
+        pad(row.classification, 24) +
+        pad(row.cases, 7) +
+        pad(row.avgOutputTokens, 9) +
+        pad(row.p95OutputTokens, 9) +
+        pad(row.ceiling, 9) +
+        row.avgQuestions
+    );
+  }
 
   const priceIn = Number(process.env.INTAKE_EVAL_PRICE_IN);
   const priceOut = Number(process.env.INTAKE_EVAL_PRICE_OUT);
   if (Number.isFinite(priceIn) && Number.isFinite(priceOut)) {
-    const usd = (totalIn / 1e6) * priceIn + (totalOut / 1e6) * priceOut;
+    const usd = (summary.totalIn / 1e6) * priceIn + (summary.totalOut / 1e6) * priceOut;
     console.log(`    est. cost (USD)  $${usd.toFixed(6)} (in $${priceIn}/1M, out $${priceOut}/1M)`);
   } else {
     console.log(col("dim", "    (set INTAKE_EVAL_PRICE_IN / INTAKE_EVAL_PRICE_OUT for a USD estimate)"));
   }
 
+  writeReportIfRequested(args, liveMarkdownReport({ args, providerKey, model, maxTokens, rows, summary }));
+
   console.log("");
-  if (passed === n) {
+  if (passed === summary.n) {
     console.log(
       col(
         "green",
-        `✓ All ${n} case(s) passed (schema, classification, signals, question budget, must_not_do, cost ceiling).`
+        `✓ All ${summary.n} case(s) passed (schema, classification, signals, question budget, must_not_do, cost ceiling).`
       )
     );
     return 0;
   }
-  console.log(col("red", `✗ ${n - passed} of ${n} case(s) failed.`));
+  console.log(col("red", `✗ ${summary.n - passed} of ${summary.n} case(s) failed.`));
   return 1;
 }
 
@@ -783,7 +772,7 @@ async function main() {
   const { cases: allCases, errors: loadErrors } = loadCases(args.file);
   const cases = Number.isInteger(args.limit) ? allCases.slice(0, args.limit) : allCases;
 
-  if (args.dryRun) return runDry(cases, loadErrors);
+  if (args.dryRun) return runDry(cases, loadErrors, args);
 
   if (loadErrors.length) {
     console.error(col("red", "JSONL parse errors (run --dry-run for detail):"));
