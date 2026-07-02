@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Gera docs/demo.gif: um terminal animado mostrando o protocolo de intake.
+"""Generate docs/demo.gif: an animated terminal showing the intake protocol.
 
-Uso: python3 scripts/gen_demo_gif.py
-Requisitos: Pillow. Fonte Menlo (macOS) com fallback para DejaVu Sans Mono.
-O GIF resultante anima no GitHub (README) via proxy de imagem.
+Usage: python3 scripts/gen_demo_gif.py
+Requires Pillow. Uses Menlo on macOS, with DejaVu Sans Mono fallback.
+The resulting GIF animates on GitHub README pages through the image proxy.
 """
 from __future__ import annotations
 import os
@@ -69,8 +69,8 @@ def L(*segs):  # build a line from (text, color, bold?) tuples
     return [(t, c, FONT_B if b else FONT) for (t, c, b) in segs]
 
 
-you1 = "quero um negócio que faça a IA entender"
-you2 = "meus áudios... não sei se é skill ou agents md"
+you1 = "I need AI to understand my voice notes"
+you2 = "not sure if this is a skill or AGENTS.md"
 label_you = ("you> ", BLUE, True)
 label_ag = ("agent> ", GREEN, True)
 
@@ -95,31 +95,31 @@ steps.append((full_you, 8))
 # 2. naive agent — executes too early
 naive = full_you + [
     [("", DEFAULT, FONT)],
-    L(label_ag, ("(sem intake) ", MUTED, False), ("já cria um AGENTS.md genérico", DEFAULT, False)),
-    L(("        ", DEFAULT, False), ("✗ executou cedo demais", RED, False)),
+    L(label_ag, ("(no intake) ", MUTED, False), ("creates a generic AGENTS.md", DEFAULT, False)),
+    L(("        ", DEFAULT, False), ("✗ executed too early", RED, False)),
 ]
 steps.append((naive, 14))
 
 # 3. intake reveal, line by line
 intake_lines = [
     [("", DEFAULT, FONT)],
-    L(label_ag, ("entendi: camada de intake p/ entradas vagas de áudio", DEFAULT, False)),
+    L(label_ag, ("understood: intake for vague voice inputs", DEFAULT, False)),
     [("", DEFAULT, FONT)],
     L(("  Brief", WHITE, True)),
-    L(("   - ", PURPLE, False), ("Objetivo: clarificar antes de executar", DEFAULT, False)),
-    L(("   - ", PURPLE, False), ("Entregável: protocolo portátil p/ agentes", DEFAULT, False)),
-    L(("   - ", PURPLE, False), ("Sucesso: pergunta quando há lacuna crítica", DEFAULT, False)),
-    L(("  Perguntas", WHITE, True)),
-    L(("   1. ", PURPLE, False), ("Codex, Claude Code ou outra?", DEFAULT, False)),
-    L(("   2. ", PURPLE, False), ("sempre perguntar ou assumir risco baixo?", DEFAULT, False)),
-    L(("   3. ", PURPLE, False), ("só instruções ou repositório aberto?", DEFAULT, False)),
+    L(("   - ", PURPLE, False), ("Objective: clarify before execution", DEFAULT, False)),
+    L(("   - ", PURPLE, False), ("Deliverable: portable agent protocol", DEFAULT, False)),
+    L(("   - ", PURPLE, False), ("Success: asks when critical gaps exist", DEFAULT, False)),
+    L(("  Questions", WHITE, True)),
+    L(("   1. ", PURPLE, False), ("Codex, Claude Code, or another tool?", DEFAULT, False)),
+    L(("   2. ", PURPLE, False), ("always ask, or assume low risk?", DEFAULT, False)),
+    L(("   3. ", PURPLE, False), ("instructions only or public repo?", DEFAULT, False)),
 ]
 shown = full_you + [[("", DEFAULT, FONT)]]
 for ln in intake_lines:
     shown = shown + [ln]
     steps.append((shown, 3))
 
-final = shown + [L(("        ", DEFAULT, False), ("✓ clarificou antes de agir", GREEN, False))]
+final = shown + [L(("        ", DEFAULT, False), ("✓ clarified before acting", GREEN, False))]
 steps.append((final, 30))
 
 # render frames

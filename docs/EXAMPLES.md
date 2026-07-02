@@ -1,81 +1,91 @@
 # Examples
 
-## Example 1: voice-like project idea
+## Example 1: Voice-Like Project Idea
 
 ### User input
 
 ```text
-Eu mandei um áudio meio bagunçado. Eu quero criar alguma coisa para organizar meus conteúdos, talvez um curso, talvez um ebook, não sei. A ideia é ajudar pais, mas ainda não tenho certeza do formato.
+I sent a messy voice note. I want to create something to organize my content,
+maybe a course, maybe an ebook. The idea is to help parents, but I am not sure
+about the format yet.
 ```
 
 ### Intake response
 
 ```markdown
-Entendi provisoriamente que você quer transformar uma ideia inicial de produto educacional para pais em uma proposta mais clara.
+I provisionally understand that you want to turn an early educational product
+idea for parents into a clearer direction.
 
-Brief estruturado:
-- Objetivo: organizar uma ideia de produto/conteúdo.
-- Entregável: ainda indefinido; pode ser curso, ebook ou mentoria.
-- Contexto: conteúdo voltado para pais.
-- Público: pais, mas o perfil específico ainda não está definido.
-- Restrições: não informadas.
-- Formato: a decidir.
-- Critério de sucesso: escolher uma direção coerente e executável.
+Structured brief:
+- Objective: organize a product/content idea.
+- Deliverable: still undefined; possible course, ebook, or mentoring offer.
+- Context: content for parents.
+- Audience: parents, but the specific segment is not defined.
+- Constraints: not provided.
+- Format: to be decided.
+- Success criteria: choose a coherent, executable direction.
 
-Lacunas críticas:
-1. O público específico ainda está amplo demais.
-2. O formato do produto ainda não foi escolhido.
-3. A transformação prometida ao público ainda não está explícita.
+Critical gaps:
+1. The specific parent segment is still too broad.
+2. The product format has not been chosen.
+3. The promised transformation is not explicit.
 
-Perguntas para destravar:
-1. Que tipo de pai/mãe você quer ajudar primeiro?
-2. Qual problema concreto esse produto resolveria?
-3. Você quer primeiro comparar formatos ou já construir uma oferta preliminar?
+Questions to unblock:
+1. Which parent segment do you want to help first?
+2. What concrete problem should this product solve?
+3. Do you want to compare formats first or draft a preliminary offer?
 
-Versão provisória do pedido:
-> Ajude-me a transformar uma ideia inicial de produto para pais em um brief estruturado, comparando possíveis formatos e identificando o público, problema, promessa e próximo passo.
+Provisional refined request:
+> Help me turn an early product idea for parents into a structured brief,
+> comparing possible formats and identifying the audience, problem, promise,
+> and next step.
 ```
 
-## Example 2: vague coding task
+## Example 2: Vague Coding Task
 
 ### User input
 
 ```text
-Arruma esse app, está meio ruim e queria deixar mais profissional.
+Fix this app. It feels rough, and I want it to look more professional.
 ```
 
 ### Intake response
 
 ```markdown
-Entendi que você quer melhorar a qualidade do app, mas “mais profissional” pode significar interface, arquitetura, performance, acessibilidade, copy, testes ou deploy.
+I understand that you want to improve the app, but "more professional" could
+mean interface, architecture, performance, accessibility, copy, tests, or
+deployment.
 
-Perguntas essenciais:
-1. O foco principal é visual, código/arquitetura, performance ou experiência do usuário?
-2. Qual parte do app está mais problemática agora?
-3. Existe algum padrão de referência que você quer seguir?
+Essential questions:
+1. Should the main focus be visual quality, code/architecture, performance, or user experience?
+2. Which part of the app feels most problematic right now?
+3. Is there a reference product or standard you want to follow?
 
-Enquanto isso, a tarefa provisória seria:
-> Auditar o app para identificar melhorias de profissionalização, separando achados por UI, UX, código, performance e confiabilidade.
+Provisional task:
+> Audit the app for professionalization opportunities, grouping findings by UI,
+> UX, code quality, performance, and reliability.
 ```
 
-## Example 3: almost clear request
+## Example 3: Already Clear Request
 
 ### User input
 
 ```text
-Reescreva esse texto para LinkedIn, mantendo o tom profissional e reduzindo repetições.
+Rewrite this paragraph for LinkedIn, preserving a professional tone and
+reducing repetition.
 ```
 
 ### Expected behavior
 
-This is `READY_TO_EXECUTE`. The agent should not run a full intake process. It should execute.
+This is `READY_TO_EXECUTE`. The agent should not run a full intake process. It
+should execute.
 
-## Example 4: needs light refinement
+## Example 4: Needs Light Refinement
 
 ### User input
 
 ```text
-Transforma isso em um README melhor para GitHub. Quero que fique claro e usável.
+Turn this into a better GitHub README. I want it to be clear and usable.
 ```
 
 ### Expected behavior
@@ -83,5 +93,6 @@ Transforma isso em um README melhor para GitHub. Quero que fique claro e usável
 This is `NEEDS_LIGHT_REFINEMENT`. The agent may state assumptions and proceed.
 
 ```markdown
-Vou assumir que “melhor” significa mais clareza para instalação, uso, estrutura do projeto e contribuição. Sigo com essa direção.
+I will assume that "better" means clearer installation, usage, project
+structure, and contribution guidance. I will proceed with that direction.
 ```

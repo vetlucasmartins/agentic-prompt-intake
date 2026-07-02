@@ -1,325 +1,273 @@
 # Agentic Prompt Intake Protocol
 
-Um protocolo portátil para impedir que agentes de IA executem pedidos vagos, transcrições de áudio, narrações soltas ou prompts mal formulados antes de transformá-los em uma tarefa clara, verificável e executável.
+A portable intake layer for AI agents. It stops agents from acting on vague
+prompts, voice transcripts, rough notes, or half-formed ideas before the request
+has been turned into a clear, executable task.
 
-A ideia central é simples: a pessoa pode falar naturalmente; o agente deve fazer a anamnese do pedido antes de agir.
+In short: **the user can speak naturally; the agent clarifies before it acts.**
 
-## Contexto e motivação
+![Demo: from loose speech to an executable brief](docs/demo.gif)
 
-Este repositório nasceu como uma resposta prática ao debate levantado pelo vídeo viral do Thiago Finch sobre o "mega brain" e a forma de falar naturalmente com a IA: descrever a ideia em voz alta, em fluxo de pensamento, e deixar o agente trabalhar.
+See the walkthrough in [docs/DEMO.md](docs/DEMO.md).
 
-A proposta aqui complementa essa ideia com uma etapa que costuma faltar. Falar naturalmente é ótimo para a pessoa, mas é justamente quando o agente mais erra: ele tende a executar imediatamente uma transcrição solta como se fosse uma tarefa pronta. O *intake* resolve isso fazendo a ponte entre a fala natural e a execução — o agente acolhe o áudio/linguagem natural, faz a anamnese, fecha as lacunas críticas e só então executa.
+## Why this exists
 
-Em uma frase: **você fala como pensa; o agente clarifica antes de agir.**
+Modern agents are good at execution, but they often execute too early. A user
+may dictate an idea, think out loud, change direction mid-sentence, or ask for
+"something better" without specifying the deliverable. Many agents treat that
+raw input as if it were a finished spec.
 
-![Demo: da fala solta ao brief executável](docs/demo.gif)
+This project adds a small routing layer before execution:
 
-> Veja o passo a passo na [demo](docs/DEMO.md).
+```text
+raw user input -> intake router -> intake refiner -> main executor
+```
 
-## Instalação em 1 comando
+The router decides whether the request is ready, lightly under-specified,
+ambiguous, or blocked. The refiner only runs when it is useful. The executor
+receives a task brief instead of a guess.
 
-Não precisa saber mexer em `.claude/`, `.cursor/` ou `AGENTS.md`. Na pasta do seu projeto, rode:
+## What you get
+
+- A cross-agent contract in `AGENTS.md`.
+- Agent skills for Codex / Agent Skills and Claude Code.
+- Adapters for GitHub Copilot, Cursor, Cline, Windsurf, Zed, Aider, Gemini CLI,
+  Google Antigravity, and generic API agents.
+- A zero-dependency installer exposed as `agentic-prompt-intake`.
+- Router prompts, a JSON schema, reusable templates, examples, and eval cases.
+- A validation script for checking the repository structure.
+
+## Install
+
+From a project folder:
 
 ```bash
 npx agentic-prompt-intake
 ```
 
-O instalador **detecta sua ferramenta** (Claude Code, Codex, Google Antigravity, GitHub Copilot, Cursor, Cline, Windsurf, Zed ou Aider — além de Gemini CLI e qualquer agente que leia `AGENTS.md`), pergunta se a instalação é no **projeto atual** ou **global** (toda a máquina), e coloca os arquivos certos no lugar certo. Ele **nunca sobrescreve** o seu `CLAUDE.md`/`AGENTS.md` — apenas adiciona um bloco marcado e idempotente.
-
-Enquanto a publicação no npm não sai, você já pode rodar direto do GitHub:
+If the npm package is not available in your environment yet, run directly from
+GitHub:
 
 ```bash
 npx github:vetlucasmartins/agentic-prompt-intake
 ```
 
-Modo não interativo (para scripts/CI):
+For scripts or CI:
 
 ```bash
 npx agentic-prompt-intake --target claude,cursor --scope project --yes
-npx agentic-prompt-intake --list      # lista todos os alvos
+npx agentic-prompt-intake --list
 ```
 
-> Prefere instalar manualmente? Veja [Instalação rápida por plataforma](#instalação-rápida-por-plataforma) mais abaixo.
+The installer detects supported tools, asks whether to install into the current
+project or globally, copies the right skill/rule files, and injects a marked
+idempotent block into contract files such as `CLAUDE.md`, `AGENTS.md`, or
+`.rules`. It never overwrites those files wholesale.
 
-> ⚠️ **Instale em UM único escopo (global OU projeto, nunca os dois).** Se o
-> protocolo estiver presente tanto no escopo global (`~/.claude`, `~/.codex`)
-> quanto no do projeto, o agente carrega o bloco de intake **duas vezes por
-> sessão** — desperdiçando tokens sem nenhum ganho. O instalador avisa quando
-> detecta o protocolo já presente no outro escopo. Para um projeto específico,
-> prefira o escopo de projeto; para todos os seus projetos, use o global —
-> mas não os dois.
->
-> Checagem manual (Claude Code):
-> `grep -l intake-refiner:start ~/.claude/CLAUDE.md ./CLAUDE.md 2>/dev/null` —
-> se aparecer nos dois, remova o bloco marcado de um deles.
+> Install the protocol in one scope only: project **or** global. Installing in
+> both scopes causes the agent to load the intake instructions twice per session,
+> wasting tokens without improving behavior.
 
-A partir da **v0.3.0** o intake roda em **um único passo curto** (cost
-discipline): sem raciocínio estendido, sem subagents, sem leitura de arquivos só
-para classificar. A maioria das entradas resolve em `READY_TO_EXECUTE` /
-`NEEDS_LIGHT_REFINEMENT` — o brief completo de `NEEDS_INTAKE` fica reservado para
-o que é de fato ambíguo. Assim o intake custa uma fração da tarefa, nunca mais.
+## Supported tools
 
-### Avaliar o comportamento (eval)
+| Tool | Installed files | Notes |
+|---|---|---|
+| Claude Code | `CLAUDE.md`, `.claude/skills/intake-refiner/SKILL.md` | Uses Claude's skill layout plus a persistent adapter. |
+| Codex / Agent Skills | `AGENTS.md`, `.agents/skills/intake-refiner/SKILL.md` | Uses the cross-agent contract and the reusable skill. |
+| Google Antigravity | `AGENTS.md`, `.agents/skills/intake-refiner/SKILL.md` | Shares the Codex / Agent Skills layout. |
+| GitHub Copilot | `.github/copilot-instructions.md`, `.github/instructions/intake-refiner.instructions.md` | Keeps repository instructions concise. |
+| Cursor | `.cursor/rules/intake-refiner.mdc` | Adds the intake behavior as a project rule. |
+| Cline | `.clinerules/intake-refiner.md` | Adds the intake behavior as a workspace rule. |
+| Windsurf | `.windsurfrules` | Adds a short project rule. |
+| Zed | `.rules` | Injects the marked block into Zed's default agent rules file. |
+| Aider | `CONVENTIONS.md`, `.aider.conf.yml` | Loads the contract and conventions as read-only context. |
+| Gemini CLI | `GEMINI.md`, `AGENTS.md` | Points Gemini to the canonical contract. |
+| Custom GPT / API agent | `prompts/`, `schemas/`, `templates/` | Use the router schema before the main executor. |
 
-Os casos em `evals/intake-cases.jsonl` podem ser executados e pontuados pelo
-runner `scripts/run_eval.mjs` (zero dependências, usa `https` nativo — funciona
-em Node ≥ 16):
+## How agents decide
 
-```bash
-npm run eval:dry          # valida o jsonl + asserts estáticos, SEM rede (ideal p/ CI)
-npm run eval              # executa os casos contra o modelo (precisa de API key)
+The protocol uses four labels:
+
+- `READY_TO_EXECUTE`: the request is clear enough to act on now.
+- `NEEDS_LIGHT_REFINEMENT`: the request is mostly clear; state assumptions and
+  proceed.
+- `NEEDS_INTAKE`: essential information is missing; ask focused questions before
+  executing.
+- `BLOCKED`: the request is unsafe, contradictory, impossible with available
+  tools, or lacks a core objective.
+
+Intake is deliberately cheap. Since `v0.3.0`, the rule is:
+
+- one short pass;
+- no extended reasoning just to classify a prompt;
+- no subagents;
+- no file reads or tool calls just to produce a brief;
+- 0-3 questions by default, only when the answer changes the output.
+
+Most requests should be `READY_TO_EXECUTE` or `NEEDS_LIGHT_REFINEMENT`. The full
+intake brief is reserved for genuinely ambiguous or multi-intent input.
+
+## When to trigger intake
+
+Use intake when the user input looks like:
+
+- a voice transcript, rough narration, or thinking aloud;
+- a vague request with no clear deliverable;
+- a request with several possible outputs;
+- an emotionally framed or self-correcting message;
+- a project idea missing audience, context, constraints, format, or success
+  criteria;
+- a request that asks the agent to choose a workflow, platform, or architecture
+  without enough context.
+
+Do not run intake when the user already gave a clear task.
+
+## Example
+
+User input:
+
+```text
+I sent a messy voice note. I want to create something for parents, maybe a
+course, maybe an ebook. Can you organize it?
 ```
 
-Para a execução real, configure o provider por variáveis de ambiente:
+Good intake response:
+
+```markdown
+I understand that you want to turn an early product idea for parents into a
+clearer direction, but the format and audience are still open.
+
+Structured brief:
+- Objective: organize a product/content idea.
+- Deliverable: not decided yet; possible course, ebook, or mentoring offer.
+- Context: content for parents.
+- Audience: parents, but the specific segment is not defined.
+- Constraints: not provided.
+- Format: to be decided.
+- Success criteria: choose a coherent, executable direction.
+
+Critical gaps:
+1. The target parent segment is still too broad.
+2. The product format has not been chosen.
+3. The promised transformation is not explicit.
+
+Questions to unblock:
+1. Which parent segment should this help first?
+2. What concrete problem should the product solve?
+3. Do you want to compare formats first or draft a preliminary offer?
+```
+
+## Repository map
+
+```text
+.
+├── AGENTS.md                                      # Cross-agent contract
+├── CLAUDE.md                                      # Claude Code adapter
+├── GEMINI.md                                      # Gemini CLI adapter
+├── CONVENTIONS.md                                # Aider/general agent conventions
+├── bin/cli.js                                    # Zero-dependency installer
+├── .agents/skills/intake-refiner/SKILL.md         # Codex / Agent Skills adapter
+├── .claude/skills/intake-refiner/SKILL.md         # Claude Code skill
+├── .github/copilot-instructions.md                # GitHub Copilot repo instructions
+├── .github/instructions/intake-refiner.instructions.md
+├── .cursor/rules/intake-refiner.mdc               # Cursor rule
+├── .clinerules/intake-refiner.md                  # Cline rule
+├── .windsurfrules                                 # Windsurf rule
+├── .rules                                         # Zed rule
+├── docs/INTAKE-PROTOCOL.md                        # Canonical protocol
+├── docs/PORTABILITY.md                            # Tool compatibility guide
+├── docs/DEMO.md                                   # Demo walkthrough
+├── docs/EXAMPLES.md                               # More examples
+├── prompts/system-intake.md                       # System prompt for custom agents
+├── prompts/intake-router.md                       # Router prompt
+├── schemas/intake-router.schema.json              # Router decision schema
+├── templates/intake-brief.md                      # Structured brief template
+├── templates/execution-prompt.md                  # Final execution prompt template
+├── examples/voice-transcript.md                   # Example raw voice-like input
+├── examples/vague-prompt.md                       # Example under-specified input
+├── evals/intake-cases.jsonl                       # Behavior eval cases
+├── scripts/run_eval.mjs                           # Eval runner
+└── scripts/validate_structure.py                  # Structure validator
+```
+
+## Use in an API agent
+
+Use the router before the main executor:
+
+```text
+user input
+  -> prompts/intake-router.md
+  -> schemas/intake-router.schema.json
+  -> intake refinement when needed
+  -> main executor
+```
+
+The router returns known fields, critical gaps, suggested questions, and a
+provisional task. Your application can then decide whether to ask the user,
+state assumptions, or proceed.
+
+## Evaluate behavior
+
+The eval cases in `evals/intake-cases.jsonl` can be checked locally without a
+network call:
 
 ```bash
-export ANTHROPIC_API_KEY=sk-...           # ou INTAKE_EVAL_API_KEY
-export INTAKE_EVAL_PROVIDER=anthropic     # default; também suporta "openai"
+npm run eval:dry
+```
+
+To run the cases against a model:
+
+```bash
+export ANTHROPIC_API_KEY=sk-...           # or INTAKE_EVAL_API_KEY
+export INTAKE_EVAL_PROVIDER=anthropic     # default; "openai" is also supported
 export INTAKE_EVAL_MODEL=claude-haiku-4-5-20251001
 npm run eval
 ```
 
-O runner faz **uma única chamada por caso** (sem tools, `temperature 0`,
-`max_tokens` limitado), então "extended reasoning", "spawn subagents" e "ler
-arquivos" são impossíveis por construção. Ele pontua classificação, número de
-perguntas, itens `must_not_do`, cobertura de `must_ask_about`, presença de
-suposições — e registra **tokens de entrada/saída** com um **teto de custo por
-classe**, imprimindo uma tabela com PASS/FAIL por caso e um resumo (taxa de
-acerto, custo médio e p95).
+The runner makes one model call per case, with no tools, `temperature 0`, and a
+bounded token budget. It scores classification, question budget, required
+questions, forbidden behaviors, stated assumptions, and token cost ceilings.
 
-## O que este repositório entrega
+## Maintain the protocol
 
-Este repositório fornece uma camada de **intake conversacional** para agentes de IA. Ela detecta quando uma entrada não está pronta para execução, organiza a intenção do usuário, identifica lacunas críticas, faz perguntas objetivas e gera um brief/prompt refinado.
+When changing behavior, update files in this order:
 
-Ele foi desenhado para funcionar em múltiplas ferramentas, não apenas em Claude Code ou Codex.
+1. `docs/INTAKE-PROTOCOL.md`
+2. `AGENTS.md`
+3. `.agents/skills/intake-refiner/SKILL.md`
+4. `.claude/skills/intake-refiner/SKILL.md`
+5. Platform adapters only when their behavior changes
+6. Examples and eval cases when expected behavior changes
 
-## Arquitetura
-
-```text
-.
-├── AGENTS.md                                      # Contrato principal para agentes compatíveis
-├── CLAUDE.md                                      # Adaptador para Claude Code
-├── GEMINI.md                                      # Adaptador genérico para agentes que leem GEMINI.md
-├── CONVENTIONS.md                                # Convenções para Aider e ferramentas similares
-├── .agents/skills/intake-refiner/SKILL.md         # Skill para Codex / Antigravity (padrão Agent Skills / .agents)
-├── .claude/skills/intake-refiner/SKILL.md         # Skill para Claude Code
-├── .github/copilot-instructions.md                # Instruções de repositório para GitHub Copilot
-├── .github/instructions/intake-refiner.instructions.md
-├── .cursor/rules/intake-refiner.mdc               # Regra para Cursor
-├── .clinerules/intake-refiner.md                  # Regra para Cline
-├── .windsurfrules                                 # Regra para Windsurf
-├── .rules                                          # Regra padrão para Zed
-├── docs/INTAKE-PROTOCOL.md                        # Protocolo canônico detalhado
-├── docs/PORTABILITY.md                            # Mapa de compatibilidade entre plataformas
-├── docs/EXAMPLES.md                               # Exemplos de uso
-├── prompts/system-intake.md                       # Prompt de sistema para agentes próprios / Custom GPT
-├── prompts/intake-router.md                       # Roteador de decisão antes da execução
-├── schemas/intake-router.schema.json              # Esquema JSON para classificar entradas
-├── templates/intake-brief.md                      # Modelo de brief estruturado
-├── templates/execution-prompt.md                  # Modelo de prompt final executável
-├── evals/intake-cases.jsonl                       # Casos de teste para avaliar o comportamento
-├── scripts/run_eval.mjs                           # Runner que executa e pontua os casos (custo incluso)
-└── scripts/validate_structure.py                  # Validação simples da estrutura do repositório
-```
-
-## Quando o protocolo deve ser ativado
-
-Ative o protocolo quando a entrada do usuário parecer qualquer uma destas situações:
-
-- Transcrição de áudio, pensamento em voz alta ou narração longa.
-- Pedido vago, ambíguo, emocional ou associativo.
-- Prompt sem entregável claro.
-- Pedido com lacunas sobre público, formato, contexto, restrições ou critério de sucesso.
-- Solicitação em que executar imediatamente provavelmente produziria um resultado genérico, incorreto ou desalinhado com o projeto.
-
-Não ative quando o usuário já forneceu uma tarefa clara, formato, contexto suficiente e critérios mínimos de sucesso.
-
-## Instalação rápida por plataforma
-
-### Codex
-
-Use o `AGENTS.md` na raiz do repositório. Para a skill reutilizável, mantenha:
-
-```text
-.agents/skills/intake-refiner/SKILL.md
-```
-
-O agente deve ler o `AGENTS.md` como contrato geral e carregar a skill quando detectar uma entrada que precisa de refinamento.
-
-### Google Antigravity
-
-O Antigravity lê nativamente o `AGENTS.md` e o diretório `.agents/` — o mesmo padrão do Codex. Mantenha:
-
-```text
-AGENTS.md
-.agents/skills/intake-refiner/SKILL.md
-```
-
-### Claude Code
-
-Mantenha estes arquivos:
-
-```text
-CLAUDE.md
-.claude/skills/intake-refiner/SKILL.md
-```
-
-O `CLAUDE.md` define a regra persistente. A skill contém o procedimento detalhado.
-
-### GitHub Copilot
-
-Mantenha:
-
-```text
-.github/copilot-instructions.md
-.github/instructions/intake-refiner.instructions.md
-AGENTS.md
-```
-
-### Cursor
-
-Mantenha:
-
-```text
-.cursor/rules/intake-refiner.mdc
-AGENTS.md
-```
-
-### Cline
-
-Mantenha:
-
-```text
-.clinerules/intake-refiner.md
-AGENTS.md
-```
-
-### Windsurf
-
-Mantenha:
-
-```text
-.windsurfrules
-AGENTS.md
-```
-
-### Zed
-
-O Zed usa o arquivo `.rules` na raiz como regra padrão do agente (também lê `AGENTS.md`). O instalador injeta um bloco marcado — nunca sobrescreve o seu `.rules`. Mantenha:
-
-```text
-.rules
-AGENTS.md
-```
-
-### Aider
-
-Use:
+Then run:
 
 ```bash
-aider --read AGENTS.md --read CONVENTIONS.md
+npm run validate
+npm run eval:dry
 ```
 
-ou configure o arquivo `.aider.conf.yml` incluído no repositório.
+## Prior art
 
-### Custom GPT, ChatGPT Project ou agente via API
+The idea of clarifying before execution is not new. The packaging is the point.
+Nearby projects include:
 
-Use:
+- [severity1/claude-code-prompt-improver](https://github.com/severity1/claude-code-prompt-improver),
+  which improves prompts through a Claude Code hook.
+- [linxaiolu/prompt-clarifier](https://github.com/linxaiolu/prompt-clarifier)
+  and [lbexplorer/PromptClarifier](https://github.com/lbexplorer/PromptClarifier),
+  which turn vague ideas into structured prompts.
+- Prompt refiners such as
+  [JacobHuang91/prompt-refiner](https://github.com/JacobHuang91/prompt-refiner),
+  which rewrite prompts but do not provide a portable intake contract.
 
-```text
-prompts/system-intake.md
-prompts/intake-router.md
-schemas/intake-router.schema.json
-```
+This project combines a cross-agent contract, platform adapters, a decision
+router, examples, evals, and a one-command installer.
 
-O desenho recomendado para API é:
+## Contributing
 
-```text
-entrada do usuário -> intake router -> intake refiner -> executor principal
-```
+See [CONTRIBUTING.md](CONTRIBUTING.md). Keep instructions concise, portable, and
+consistent across adapters.
 
-## Fluxo de resposta esperado
+## License
 
-Quando o protocolo for acionado, o agente não deve executar imediatamente. Ele deve responder neste padrão:
-
-```markdown
-Entendi provisoriamente que você quer...
-
-Brief estruturado:
-- Objetivo:
-- Entregável:
-- Contexto:
-- Público:
-- Restrições:
-- Critério de sucesso:
-
-Lacunas críticas:
-1. ...
-2. ...
-
-Perguntas para destravar:
-1. ...
-2. ...
-3. ...
-
-Enquanto você responde, a versão provisória do pedido seria:
-> ...
-```
-
-Se a tarefa estiver quase clara, o agente pode explicitar as suposições e seguir. Se faltar uma informação estrutural, deve perguntar antes.
-
-## Exemplo curto
-
-Entrada do usuário:
-
-```text
-Falei um áudio meio bagunçado. Quero que a IA organize minha ideia sobre criar um produto, mas ainda não sei direito se é curso, ebook ou mentoria.
-```
-
-Saída esperada:
-
-```markdown
-Entendi que você quer transformar uma ideia inicial de produto em uma proposta mais clara, mas ainda não decidiu o formato.
-
-Brief provisório:
-- Objetivo: organizar uma ideia de produto digital.
-- Entregável possível: mapa de decisão entre curso, ebook e mentoria.
-- Lacuna principal: público, transformação prometida e formato preferido.
-
-Perguntas:
-1. Quem é o público principal?
-2. Qual problema específico esse produto resolveria?
-3. Você quer primeiro decidir o formato ou já construir uma oferta preliminar?
-```
-
-## Como se compara (prior art)
-
-A ideia de "clarificar antes de executar" não é inédita — o que é raro é o empacotamento. Projetos próximos:
-
-- [severity1/claude-code-prompt-improver](https://github.com/severity1/claude-code-prompt-improver) — melhora o prompt via hook, mas é só Claude Code e reescreve em vez de fazer perguntas.
-- [linxaiolu/prompt-clarifier](https://github.com/linxaiolu/prompt-clarifier), [lbexplorer/PromptClarifier](https://github.com/lbexplorer/PromptClarifier) — transformam ideia vaga em prompt estruturado, mas são single-tool e sem tração.
-- Refinadores como [JacobHuang91/prompt-refiner](https://github.com/JacobHuang91/prompt-refiner) reescrevem prompts, sem etapa de anamnese.
-
-**O diferencial deste projeto** é a combinação: (1) **portátil** entre 7 ferramentas via `AGENTS.md` + adapters, (2) **anamnese** com brief, lacunas e router de decisão em vez de só reescrever, e (3) **instalação `npx` em 1 comando** pensada para quem não é dev.
-
-## Princípios
-
-1. A IA deve acolher a linguagem natural, mas não deve fingir que um pedido vago é uma tarefa pronta.
-2. O agente deve clarificar antes de executar quando a ambiguidade afeta o resultado.
-3. Perguntas devem ser poucas, específicas e hierarquizadas.
-4. O agente deve declarar suposições em vez de escondê-las.
-5. O resultado final deve ser uma tarefa operacional, não apenas um prompt “bonito”.
-
-## Estado do projeto
-
-Versão inicial: `0.1.0`.
-
-Este repositório é deliberadamente simples. Ele contém regras, skills, prompts, modelos e um pequeno script de validação. Não requer dependências externas.
-
-## Como contribuir
-
-Leia `CONTRIBUTING.md`. Ao alterar o protocolo central, atualize também os adaptadores relevantes para evitar divergência entre ferramentas.
-
-## Licença
-
-MIT. Veja `LICENSE`.
+MIT. See [LICENSE](LICENSE).

@@ -7,12 +7,15 @@ This protocol is intentionally multi-platform. The central source of truth is `A
 | Platform/tool | Primary file(s) | Notes |
 |---|---|---|
 | Codex | `AGENTS.md`, `.agents/skills/intake-refiner/SKILL.md` | Use `AGENTS.md` for global behavior and the skill for the intake workflow. |
+| Google Antigravity | `AGENTS.md`, `.agents/skills/intake-refiner/SKILL.md` | Uses the same `AGENTS.md` + `.agents/` layout as Codex. |
 | Claude Code | `CLAUDE.md`, `.claude/skills/intake-refiner/SKILL.md` | `CLAUDE.md` should stay short; the skill contains the procedure. |
 | GitHub Copilot | `.github/copilot-instructions.md`, `.github/instructions/*.instructions.md`, `AGENTS.md` | Keep repo-wide instructions concise. |
 | Cursor | `.cursor/rules/intake-refiner.mdc`, `AGENTS.md` | Cursor can use project rules and cross-agent instructions. |
 | Cline | `.clinerules/intake-refiner.md`, `AGENTS.md` | Cline recognizes multiple rule sources. |
 | Windsurf | `.windsurfrules`, `AGENTS.md` | Keep `.windsurfrules` short and direct. |
+| Zed | `.rules`, `AGENTS.md` | The installer injects a marked block into Zed's default agent rules file. |
 | Aider | `CONVENTIONS.md`, `.aider.conf.yml`, `AGENTS.md` | Load the files as read-only context. |
+| Gemini CLI | `GEMINI.md`, `AGENTS.md` | `GEMINI.md` points Gemini to the canonical project contract. |
 | Custom GPT / API agent | `prompts/system-intake.md`, `prompts/intake-router.md`, `schemas/intake-router.schema.json` | Use a router before the main executor. |
 
 ## Recommended hierarchy
@@ -26,6 +29,8 @@ AGENTS.md                         # cross-agent contract
     ├── .cursor/...                # Cursor
     ├── .clinerules/...            # Cline
     ├── .windsurfrules             # Windsurf
+    ├── .rules                     # Zed
+    ├── GEMINI.md                  # Gemini CLI
     └── prompts + schemas          # API / Custom GPT
 ```
 

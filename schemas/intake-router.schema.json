@@ -98,7 +98,7 @@
     "suggested_questions": {
       "type": "array",
       "minItems": 0,
-      "maxItems": 7,
+      "maxItems": 5,
       "items": {
         "type": "string"
       }

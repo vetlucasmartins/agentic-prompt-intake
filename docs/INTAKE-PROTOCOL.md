@@ -42,7 +42,7 @@ Use when the request includes enough information to act without meaningful risk 
 Example:
 
 ```text
-Rewrite the following paragraph in formal Brazilian Portuguese, preserving the meaning and reducing repetition.
+Rewrite the following paragraph in formal English, preserving the meaning and reducing repetition.
 ```
 
 ### NEEDS_LIGHT_REFINEMENT
@@ -58,7 +58,8 @@ Make this landing page better for parents. Keep it warm and clear.
 The agent can say:
 
 ```markdown
-Vou assumir que “better” significa mais clareza, confiança e conversão. Sigo com essa direção.
+I will assume that "better" means clearer messaging, stronger trust signals,
+and a more visible call to action. I will proceed with that direction.
 ```
 
 Then execute.
@@ -70,7 +71,8 @@ Use when essential information is missing.
 Example:
 
 ```text
-Quero criar alguma coisa com essa ideia que te falei no áudio. Talvez um produto ou conteúdo. Organiza isso.
+I want to create something from the idea I mentioned in the voice note. Maybe a
+product, maybe content. Can you organize it?
 ```
 
 The agent should ask before executing.
@@ -85,12 +87,12 @@ The agent should explain the blockage and offer a safe or feasible alternative.
 
 The protocol should trigger when the input contains signals such as:
 
-- “Estou pensando alto...”
-- “Esse prompt está ruim...”
-- “Vou mandar um áudio...”
-- “Não sei se é isso...”
-- “Organiza essa ideia...”
-- “Transforma isso em algo coerente...”
+- "I am thinking out loud..."
+- "This prompt is messy..."
+- "I will send a voice note..."
+- "I am not sure what I need..."
+- "Organize this idea..."
+- "Turn this into something coherent..."
 - Long paragraphs with self-correction and no clear deliverable.
 - Multiple possible outputs: article, video script, product strategy, code, research, plan.
 - Missing target audience, format, constraints, success criteria, or platform.
@@ -145,7 +147,7 @@ Default to 0–3 questions, and only when they change the output:
 2. Who is it for?
 3. What constraints or examples should guide it?
 
-For complex projects, ask up to seven questions, grouped by priority.
+For genuinely complex projects, ask up to five questions, grouped by priority.
 
 Bad question:
 
@@ -156,7 +158,8 @@ Can you provide more details?
 Better question:
 
 ```text
-O resultado final deve ser um prompt refinado, um brief de projeto, uma configuração de agente ou todos esses formatos?
+Should the final output be a refined prompt, a project brief, an agent
+configuration, or all of those?
 ```
 
 ## 8. Execution threshold
@@ -181,11 +184,11 @@ If the agent proceeds with incomplete information, it must state assumptions vis
 Template:
 
 ```markdown
-Vou assumir, por enquanto, que:
+For now, I will assume that:
 - ...
 - ...
 
-Com essas suposições, a tarefa executável fica assim:
+With those assumptions, the executable task is:
 > ...
 ```
 
@@ -205,19 +208,8 @@ Steps: ...
 Output format: ...
 ```
 
-In Portuguese:
-
-```markdown
-Você está ajudando com [papel/tarefa].
-Objetivo: ...
-Contexto: ...
-Entregável: ...
-Público: ...
-Restrições: ...
-Critério de sucesso: ...
-Etapas: ...
-Formato de saída: ...
-```
+Use the user's language. If the user writes in another language, translate the
+field labels and questions to that language.
 
 ## 11. Anti-patterns
 
@@ -234,26 +226,27 @@ Avoid these behaviors:
 ## 12. Good default response
 
 ```markdown
-Entendi a direção geral. Antes de executar, vou organizar o pedido para evitar um resultado genérico.
+I understand the general direction. Before executing, I will organize the
+request to avoid a generic result.
 
-Brief provisório:
-- Objetivo: ...
-- Entregável: ...
-- Contexto: ...
-- Público: ...
-- Restrições: ...
-- Critério de sucesso: ...
+Provisional brief:
+- Objective: ...
+- Deliverable: ...
+- Context: ...
+- Audience: ...
+- Constraints: ...
+- Success criteria: ...
 
-Lacunas críticas:
+Critical gaps:
 1. ...
 2. ...
 
-Perguntas essenciais:
+Essential questions:
 1. ...
 2. ...
 3. ...
 
-Versão provisória do prompt:
+Provisional refined prompt:
 > ...
 ```
 
