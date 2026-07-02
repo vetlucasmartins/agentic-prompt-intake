@@ -27,6 +27,11 @@ The router decides whether the request is ready, lightly under-specified,
 ambiguous, or blocked. The refiner only runs when it is useful. The executor
 receives a task brief instead of a guess.
 
+Version `0.4.0` adds activation intelligence: the router now reports objective
+activation/suppression signals, readiness and ambiguity scores, and a compact
+decision summary so users can see why intake did or did not run without reading
+a long brief.
+
 ## What you get
 
 - A cross-agent contract in `AGENTS.md`.
@@ -35,7 +40,8 @@ receives a task brief instead of a guess.
   Google Antigravity, and generic API agents.
 - A zero-dependency installer exposed as `agentic-prompt-intake`.
 - Router prompts, a JSON schema, reusable templates, examples, and eval cases.
-- A validation script for checking the repository structure.
+- A validation script and zero-dependency eval runner for checking structure,
+  classification, questions, token cost, and over/under-trigger behavior.
 
 ## Install
 
@@ -107,6 +113,26 @@ Intake is deliberately cheap. Since `v0.3.0`, the rule is:
 Most requests should be `READY_TO_EXECUTE` or `NEEDS_LIGHT_REFINEMENT`. The full
 intake brief is reserved for genuinely ambiguous or multi-intent input.
 
+Since `v0.4.0`, the router also weighs activation signals against suppression
+signals:
+
+- activation signals: voice-like narration, messy-prompt language, unclear
+  deliverable, multiple possible outputs, or missing fields that materially
+  change the work;
+- suppression signals: a clear action verb, clear deliverable, clear file or
+  artifact target, optional-only gaps, standard defaults, or a low-risk first
+  step.
+
+Small gaps should not trigger a full intake when the first useful action is
+obvious. The router can expose a compact decision card such as:
+
+```text
+Decision: NEEDS_LIGHT_REFINEMENT (readiness 72/100, ambiguity 31/100)
+Signals: activation: vague_quality_goal; suppression: clear_deliverable
+Questions: 0-1
+Next: State assumptions and proceed.
+```
+
 ## When to trigger intake
 
 Use intake when the user input looks like:
@@ -121,6 +147,10 @@ Use intake when the user input looks like:
   without enough context.
 
 Do not run intake when the user already gave a clear task.
+
+Also suppress intake when the only missing details are optional style,
+preference, or length choices and a reasonable default would not change the
+first output.
 
 ## Example
 
@@ -202,9 +232,11 @@ user input
   -> main executor
 ```
 
-The router returns known fields, critical gaps, suggested questions, and a
-provisional task. Your application can then decide whether to ask the user,
-state assumptions, or proceed.
+The router returns the v0.4 decision JSON: classification, readiness and
+ambiguity scores, activation/suppression signals, recommended mode, compact
+summary, known fields, critical gaps, suggested questions, and a provisional
+task. Your application can then decide whether to ask the user, state
+assumptions, decline safely, or proceed.
 
 ## Evaluate behavior
 
@@ -225,8 +257,11 @@ npm run eval
 ```
 
 The runner makes one model call per case, with no tools, `temperature 0`, and a
-bounded token budget. It scores classification, question budget, required
-questions, forbidden behaviors, stated assumptions, and token cost ceilings.
+bounded token budget. It scores schema shape, classification, signal
+expectations, question budget, required questions, forbidden behaviors, stated
+assumptions, and token cost ceilings. The summary reports classification
+accuracy, average and p95 output tokens, average questions, and over/under-intake
+candidates.
 
 ## Maintain the protocol
 

@@ -22,6 +22,32 @@ This skill is a fast routing layer, not a task. Run it in ONE short pass and spe
 - Ask 0–3 questions, and only when the answer changes the output.
 - Keep output short. Intake must never cost more than the task it precedes.
 
+## v0.4 activation intelligence
+
+The canonical rules live in `docs/INTAKE-PROTOCOL.md`. In short: do not trigger
+intake from missing fields alone. Weigh activation signals against suppression
+signals and choose the cheapest safe mode.
+
+Activation signals include voice-like narration, explicit messy-prompt language,
+vague quality goals, unclear deliverable, multiple possible outputs, missing
+fields that materially change the work, contradictory requests, and unsafe
+requests.
+
+Suppression signals include a clear action verb, clear deliverable, clear target
+file or artifact, optional-only gaps, standard defaults, low-risk reversible
+work, and cases where no question would change the first useful step.
+
+When a visible routing explanation helps, use a compact decision card:
+
+```markdown
+Decision: `NEEDS_LIGHT_REFINEMENT` (readiness 72/100, ambiguity 31/100)
+Signals: activation: vague_quality_goal; suppression: clear_deliverable
+Questions: 0-1
+Next: State assumptions and proceed.
+```
+
+For straightforward `READY_TO_EXECUTE` work, omit the card and act.
+
 ## When to trigger
 
 Trigger this skill when the user input has any of these traits:
@@ -33,7 +59,8 @@ Trigger this skill when the user input has any of these traits:
 - The request contains multiple possible intentions.
 - Important fields are missing: objective, deliverable, audience, context, constraints, format, success criteria.
 
-Do not trigger if the request is already clear enough to execute.
+Do not trigger if the request is already clear enough to execute, even if small
+style, length, or preference details are missing.
 
 ## Core workflow
 

@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.4.0 - Activation intelligence / compact router decisions
+
+- Added v0.4 activation intelligence to the canonical protocol: activation
+  signals, suppression signals, readiness/ambiguity scores, and explicit rules
+  for suppressing intake when only small optional gaps remain.
+- Added compact decision cards for short user-facing routing summaries without
+  forcing a full intake brief.
+- Expanded the router JSON contract with `schema_version`, `readiness_score`,
+  `ambiguity_score`, `activation_signals`, `suppression_signals`,
+  `recommended_mode`, and `compact_summary` while keeping the existing known
+  fields, gaps, questions, and provisional task.
+- Updated Codex/Agent Skills and Claude adapters to point to the canonical v0.4
+  behavior without duplicating the full protocol.
+- Expanded eval cases with Portuguese examples, clear prompts that should
+  suppress intake, ambiguous prompts that should trigger intake, light-refinement
+  prompts, and a blocked unsafe request.
+- Updated the zero-dependency eval runner to validate the v0.4 decision fields
+  and report classification accuracy, average/p95 output tokens, average
+  questions, over-intake candidates, and under-intake candidates.
+
 ## 0.3.0 - Cost discipline / lightweight intake
 
 - Added a "cost discipline" guardrail to the skill, system prompt, `AGENTS.md`, and `docs/INTAKE-PROTOCOL.md`: intake runs in one short pass — no extended reasoning, no subagents, no file reads — so it never costs more than the task it precedes.

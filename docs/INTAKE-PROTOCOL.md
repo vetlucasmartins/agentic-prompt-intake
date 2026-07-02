@@ -83,7 +83,73 @@ Use when the request is unsafe, contradictory, impossible with available tools, 
 
 The agent should explain the blockage and offer a safe or feasible alternative.
 
-## 4. Trigger indicators
+## 4. Activation intelligence
+
+Activation is not a keyword match. Weigh activation signals against suppression
+signals, then choose the cheapest mode that still avoids likely misalignment.
+
+Use two approximate scores when routing through an API or eval harness:
+
+- `readiness_score` (0-100): how ready the request is for execution.
+- `ambiguity_score` (0-100): how likely execution is to miss the user's intent.
+
+As a rule of thumb:
+
+- High readiness and low ambiguity -> `READY_TO_EXECUTE`.
+- Medium readiness with small optional gaps -> `NEEDS_LIGHT_REFINEMENT`.
+- Low readiness or high ambiguity -> `NEEDS_INTAKE`.
+- Unsafe, impossible, contradictory, or core-objective-free requests -> `BLOCKED`.
+
+### Activation signals
+
+Signals that push toward intake:
+
+- Voice transcript, rough narration, brainstorming, or thinking aloud.
+- The user says the request is messy, unclear, or not yet prompt-shaped.
+- No clear deliverable.
+- Vague quality goals such as "better", "stronger", or "more professional"
+  without a defined dimension of improvement.
+- Multiple plausible outputs would lead to different work.
+- The task asks the agent to choose a workflow, platform, format, or
+  architecture without enough context.
+- Missing audience, constraints, success criteria, source material, or platform
+  where those fields materially change the output.
+- Contradictory, unsafe, impossible, or high-consequence instructions.
+
+### Suppression signals
+
+Signals that suppress intake:
+
+- The request has a clear action verb and object.
+- The deliverable is explicit or strongly implied by the task type.
+- Missing details are optional polish fields such as tone, length, or examples.
+- Reasonable defaults are standard for the requested work.
+- A first useful step is obvious and reversible, such as inspecting a file,
+  running a test, summarizing supplied text, or applying a small edit.
+- Asking a question would not materially change the first output.
+- The user explicitly asks for direct execution and the risk is low.
+
+Suppress intake even when small gaps exist if the objective and deliverable are
+clear enough and the missing fields would only refine style, not change the
+work. In those cases, use `READY_TO_EXECUTE` or `NEEDS_LIGHT_REFINEMENT` with a
+visible assumption.
+
+### Compact decision card
+
+When the agent or application needs to show the routing decision, prefer a short
+card instead of a full brief:
+
+```markdown
+Decision: `NEEDS_LIGHT_REFINEMENT` (readiness 72/100, ambiguity 31/100)
+Signals: activation: vague_quality_goal; suppression: clear_deliverable
+Questions: 0-1
+Next: State assumptions and proceed.
+```
+
+For ordinary `READY_TO_EXECUTE` work, omit the card and execute. For
+`NEEDS_INTAKE`, use the full brief only when the missing information is critical.
+
+## 5. Trigger indicators
 
 The protocol should trigger when the input contains signals such as:
 
@@ -97,7 +163,7 @@ The protocol should trigger when the input contains signals such as:
 - Multiple possible outputs: article, video script, product strategy, code, research, plan.
 - Missing target audience, format, constraints, success criteria, or platform.
 
-## 5. The intake brief
+## 6. The intake brief
 
 The brief should contain:
 
@@ -113,7 +179,7 @@ The brief should contain:
 | Inputs | What materials are available? |
 | Tools/platform | Where will this be used? |
 
-## 6. Gap analysis
+## 7. Gap analysis
 
 Classify missing information as:
 
@@ -137,7 +203,7 @@ These improve quality but do not necessarily block execution. Examples:
 - Secondary audience.
 - Optional constraints.
 
-## 7. Question strategy
+## 8. Question strategy
 
 Ask fewer, better questions. Prefer a stated assumption over a question.
 
@@ -162,7 +228,7 @@ Should the final output be a refined prompt, a project brief, an agent
 configuration, or all of those?
 ```
 
-## 8. Execution threshold
+## 9. Execution threshold
 
 Execute only when at least these fields are clear enough:
 
@@ -177,7 +243,7 @@ For coding or tool configuration, also require platform and file target.
 
 For research, also require scope and source expectations.
 
-## 9. Assumptions
+## 10. Assumptions
 
 If the agent proceeds with incomplete information, it must state assumptions visibly.
 
@@ -192,7 +258,7 @@ With those assumptions, the executable task is:
 > ...
 ```
 
-## 10. The refined prompt
+## 11. The refined prompt
 
 A refined prompt should include:
 
@@ -211,7 +277,7 @@ Output format: ...
 Use the user's language. If the user writes in another language, translate the
 field labels and questions to that language.
 
-## 11. Anti-patterns
+## 12. Anti-patterns
 
 Avoid these behaviors:
 
@@ -223,7 +289,7 @@ Avoid these behaviors:
 - Treating the user’s audio transcript as a failure rather than raw material.
 - Producing a polished prompt that still lacks task structure.
 
-## 12. Good default response
+## 13. Good default response
 
 ```markdown
 I understand the general direction. Before executing, I will organize the
@@ -250,7 +316,7 @@ Provisional refined prompt:
 > ...
 ```
 
-## 13. Platform notes
+## 14. Platform notes
 
 Use `AGENTS.md` as the cross-tool contract.
 

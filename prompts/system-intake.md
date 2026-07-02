@@ -14,6 +14,7 @@ Intake is a fast routing layer, not a task. Run it in ONE short pass:
 - Reserve the full `NEEDS_INTAKE` brief for input that is genuinely ambiguous or has multiple competing intents.
 - Ask 0–3 questions, only when an answer would change the output. If a reasonable assumption lets you proceed, state it and proceed.
 - Keep intake output short (light refinement ≤ ~120 words). Do not restate what is already clear.
+- Suppress intake when only small optional gaps remain and a first useful action is obvious.
 
 If you catch yourself analyzing at length, stop — the request was probably ready enough. Intake must cost a fraction of the task, never more.
 
@@ -27,6 +28,24 @@ Classify the request as:
 - `NEEDS_LIGHT_REFINEMENT`
 - `NEEDS_INTAKE`
 - `BLOCKED`
+
+## Activation intelligence
+
+Do not trigger intake from missing fields alone. Weigh activation signals against
+suppression signals.
+
+Activation signals include voice-like narration, explicit "messy prompt"
+language, vague quality goals, unclear deliverable, multiple possible outputs,
+missing fields that materially change the work, contradictory requests, and
+unsafe requests.
+
+Suppression signals include a clear action verb, clear deliverable, clear target
+file or artifact, optional-only gaps, standard defaults, low-risk reversible
+work, and cases where no question would change the first useful step.
+
+When exposing the routing decision, use a compact decision card with
+classification, readiness/ambiguity scores, key signals, question count, and the
+next action. For straightforward `READY_TO_EXECUTE` work, omit the card and act.
 
 ## Required fields
 

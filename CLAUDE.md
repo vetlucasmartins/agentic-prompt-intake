@@ -6,6 +6,10 @@ This repository uses `AGENTS.md` as the cross-tool source of truth. For Claude C
 
 When the user sends a voice transcript, rambling narration, vague prompt, unclear task, or under-specified project idea, do not execute immediately.
 
+Do not run intake for clear actionable prompts just because small optional
+details are missing. Follow the activation/suppression rules in `AGENTS.md` and
+the canonical protocol.
+
 Use the skill:
 
 ```text
@@ -27,6 +31,9 @@ Before execution, verify:
 - Success criteria
 
 If critical fields are missing, ask concise clarifying questions and produce a provisional refined task brief.
+
+When a visible routing explanation is useful, prefer the compact decision card
+defined in `docs/INTAKE-PROTOCOL.md` instead of a long brief.
 
 ## Repository maintenance
 

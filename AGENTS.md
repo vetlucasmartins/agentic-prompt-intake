@@ -15,6 +15,7 @@ Intake is a fast routing layer, not a task. It must cost a small fraction of the
 - Default to acting. Most inputs are `READY_TO_EXECUTE` or `NEEDS_LIGHT_REFINEMENT` — handle them in a few sentences and proceed.
 - Reserve the full `NEEDS_INTAKE` brief for genuinely ambiguous or multi-intent input.
 - Ask 0–3 questions, only when an answer changes the output. If you are deliberating at length, the request was probably ready enough — stop and proceed.
+- Suppress intake when small gaps are only optional polish details and the first useful action is clear.
 
 ## Non-negotiable behavior
 
@@ -42,6 +43,24 @@ Use intake refinement when the user input includes any of the following:
 
 Do not over-trigger when the user already provided a specific, actionable request.
 
+## Activation intelligence
+
+Do not trigger intake from missing fields alone. Weigh activation signals against
+suppression signals and choose the cheapest safe mode.
+
+Activation signals include voice-like narration, explicit messy-prompt language,
+vague quality goals, unclear deliverable, multiple possible outputs, missing
+fields that materially change the work, contradictory requests, and unsafe
+requests.
+
+Suppression signals include a clear action verb, clear deliverable, clear target
+file or artifact, optional-only gaps, standard defaults, low-risk reversible
+work, and cases where no question would change the first useful step.
+
+When a routing explanation is useful, prefer a compact decision card with the
+classification, readiness/ambiguity scores, key signals, question count, and
+next action. For straightforward `READY_TO_EXECUTE` work, omit the card and act.
+
 ## Intake decision labels
 
 Use these labels internally or visibly when helpful:
@@ -63,7 +82,9 @@ Before executing, verify these fields:
 - Format: What form should the answer or artifact take?
 - Success criteria: How will the user know the result is good?
 
-If two or more essential fields are missing, ask questions instead of executing.
+If two or more essential fields that materially affect the output are missing,
+ask questions instead of executing. If the missing fields are optional for the
+current task, state assumptions and proceed.
 
 ## Response pattern for unclear prompts
 

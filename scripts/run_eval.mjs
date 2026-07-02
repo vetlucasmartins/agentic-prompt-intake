@@ -12,7 +12,8 @@
  *     harness cannot do them, so those `must_not_do` items always hold.
  *   - It records input/output tokens per case and enforces a per-class output
  *     token ceiling (cost regression guard). PASS/FAIL is reported per case and
- *     overall.
+ *     overall. The summary reports classification accuracy, avg/p95 output
+ *     tokens, avg questions, and over/under-intake candidates.
  *
  * The model is asked to emit the router JSON (schemas/intake-router.schema.json)
  * built from the canonical prompts (prompts/system-intake.md + intake-router.md),
@@ -46,15 +47,37 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
 
 const CLASSES = ["READY_TO_EXECUTE", "NEEDS_LIGHT_REFINEMENT", "NEEDS_INTAKE", "BLOCKED"];
+const RECOMMENDED_MODES = [
+  "execute_now",
+  "state_assumptions_then_execute",
+  "ask_before_execute",
+  "decline_or_redirect",
+];
+const DECISION_KEYS = [
+  "schema_version",
+  "classification",
+  "confidence",
+  "readiness_score",
+  "ambiguity_score",
+  "activation_signals",
+  "suppression_signals",
+  "recommended_mode",
+  "compact_summary",
+  "reason",
+  "known_fields",
+  "critical_gaps",
+  "suggested_questions",
+  "provisional_task",
+];
 
 // Per-class output-token ceilings (cost regression guard). A READY case must
 // stay tiny; a full NEEDS_INTAKE brief is allowed more room. Override via
 // INTAKE_EVAL_CEILING_READY_TO_EXECUTE etc.
 const DEFAULT_CEILINGS = {
-  READY_TO_EXECUTE: 220,
-  NEEDS_LIGHT_REFINEMENT: 380,
-  NEEDS_INTAKE: 650,
-  BLOCKED: 400,
+  READY_TO_EXECUTE: 320,
+  NEEDS_LIGHT_REFINEMENT: 460,
+  NEEDS_INTAKE: 720,
+  BLOCKED: 460,
 };
 
 const C = {
@@ -136,6 +159,18 @@ function loadCases(file) {
 }
 
 // Schema + static cost-guard asserts. Returns array of error strings (empty = OK).
+function expectStringArray(c, key, at, errs) {
+  if (key in c && (!Array.isArray(c[key]) || !c[key].every((x) => typeof x === "string" && x.length > 0))) {
+    errs.push(`${at}: ${key} must be a non-empty-string array`);
+  }
+}
+
+function expectScoreBound(c, key, at, errs) {
+  if (key in c && (!Number.isInteger(c[key]) || c[key] < 0 || c[key] > 100)) {
+    errs.push(`${at}: ${key} must be an integer from 0 to 100`);
+  }
+}
+
 function validateCase(c, i) {
   const errs = [];
   const at = `case[${i}]${c && c.id ? ` "${c.id}"` : ""}`;
@@ -153,6 +188,31 @@ function validateCase(c, i) {
   }
   if ("must_state_assumptions" in c && typeof c.must_state_assumptions !== "boolean")
     errs.push(`${at}: must_state_assumptions must be boolean`);
+  for (const key of ["expected_activation_signals", "expected_suppression_signals"]) {
+    expectStringArray(c, key, at, errs);
+  }
+  if ("expected_recommended_mode" in c && !RECOMMENDED_MODES.includes(c.expected_recommended_mode))
+    errs.push(`${at}: expected_recommended_mode must be one of ${RECOMMENDED_MODES.join("|")}`);
+  for (const key of [
+    "expected_readiness_min",
+    "expected_readiness_max",
+    "expected_ambiguity_min",
+    "expected_ambiguity_max",
+  ]) {
+    expectScoreBound(c, key, at, errs);
+  }
+  if (
+    "expected_readiness_min" in c &&
+    "expected_readiness_max" in c &&
+    c.expected_readiness_min > c.expected_readiness_max
+  )
+    errs.push(`${at}: expected_readiness_min must be <= expected_readiness_max`);
+  if (
+    "expected_ambiguity_min" in c &&
+    "expected_ambiguity_max" in c &&
+    c.expected_ambiguity_min > c.expected_ambiguity_max
+  )
+    errs.push(`${at}: expected_ambiguity_min must be <= expected_ambiguity_max`);
 
   // Static cost-guard consistency: a READY case must not budget any question.
   if (c.expected_classification === "READY_TO_EXECUTE" && "max_questions" in c && c.max_questions !== 0)
@@ -284,6 +344,72 @@ function parseDecision(text) {
   return JSON.parse(t.slice(start, end + 1));
 }
 
+function isStringArray(value, maxItems = Infinity) {
+  return (
+    Array.isArray(value) &&
+    value.length <= maxItems &&
+    value.every((item) => typeof item === "string" && item.trim().length > 0)
+  );
+}
+
+function validateDecision(decision) {
+  const errs = [];
+  if (!decision || typeof decision !== "object" || Array.isArray(decision)) {
+    return ["decision must be an object"];
+  }
+  for (const key of Object.keys(decision)) {
+    if (!DECISION_KEYS.includes(key)) errs.push(`unexpected field "${key}"`);
+  }
+  for (const key of DECISION_KEYS) {
+    if (!(key in decision)) errs.push(`missing field "${key}"`);
+  }
+  if (decision.schema_version !== "0.4") errs.push(`schema_version must be "0.4"`);
+  if (!CLASSES.includes(decision.classification)) errs.push(`classification must be one of ${CLASSES.join("|")}`);
+  if (typeof decision.confidence !== "number" || decision.confidence < 0 || decision.confidence > 1)
+    errs.push("confidence must be a number from 0 to 1");
+  for (const key of ["readiness_score", "ambiguity_score"]) {
+    if (!Number.isInteger(decision[key]) || decision[key] < 0 || decision[key] > 100)
+      errs.push(`${key} must be an integer from 0 to 100`);
+  }
+  if (!isStringArray(decision.activation_signals, 5))
+    errs.push("activation_signals must be an array of 0-5 strings");
+  if (!isStringArray(decision.suppression_signals, 5))
+    errs.push("suppression_signals must be an array of 0-5 strings");
+  if (!RECOMMENDED_MODES.includes(decision.recommended_mode))
+    errs.push(`recommended_mode must be one of ${RECOMMENDED_MODES.join("|")}`);
+  if (typeof decision.compact_summary !== "string" || decision.compact_summary.trim().length === 0)
+    errs.push("compact_summary must be a non-empty string");
+  else if (decision.compact_summary.length > 220) errs.push("compact_summary must be <= 220 characters");
+  if (typeof decision.reason !== "string" || decision.reason.trim().length === 0)
+    errs.push("reason must be a non-empty string");
+  else if (decision.reason.length > 400) errs.push("reason must be <= 400 characters");
+  const kf = decision.known_fields;
+  const knownKeys = ["objective", "deliverable", "context", "audience", "constraints", "format", "success_criteria"];
+  if (!kf || typeof kf !== "object" || Array.isArray(kf)) {
+    errs.push("known_fields must be an object");
+  } else {
+    for (const key of Object.keys(kf)) {
+      if (!knownKeys.includes(key)) errs.push(`known_fields has unexpected field "${key}"`);
+    }
+    for (const key of knownKeys) {
+      if (!(key in kf)) errs.push(`known_fields missing "${key}"`);
+    }
+    for (const key of knownKeys.filter((key) => key !== "constraints")) {
+      if (kf[key] !== null && typeof kf[key] !== "string")
+        errs.push(`known_fields.${key} must be string or null`);
+    }
+    if (!isStringArray(kf.constraints, Infinity)) errs.push("known_fields.constraints must be an array of strings");
+  }
+  if (!isStringArray(decision.critical_gaps, 5)) errs.push("critical_gaps must be an array of 0-5 strings");
+  if (!isStringArray(decision.suggested_questions, 5))
+    errs.push("suggested_questions must be an array of 0-5 strings");
+  if (decision.provisional_task !== null && typeof decision.provisional_task !== "string")
+    errs.push("provisional_task must be string or null");
+  else if (typeof decision.provisional_task === "string" && decision.provisional_task.length > 800)
+    errs.push("provisional_task must be <= 800 characters");
+  return errs;
+}
+
 const normalize = (s) =>
   (s || "")
     .normalize("NFD")
@@ -321,6 +447,13 @@ function topicCovered(topic, questions) {
   });
 }
 
+function valueInRange(value, min, max) {
+  if (!Number.isFinite(value)) return false;
+  if (Number.isFinite(min) && value < min) return false;
+  if (Number.isFinite(max) && value > max) return false;
+  return true;
+}
+
 function ceilingFor(cls) {
   const env = process.env[`INTAKE_EVAL_CEILING_${cls}`];
   if (env && Number.isFinite(Number(env))) return Number(env);
@@ -329,6 +462,10 @@ function ceilingFor(cls) {
 
 function scoreCase(c, decision, usage) {
   const checks = [];
+  const schemaErrors = validateDecision(decision);
+  for (const err of schemaErrors) {
+    checks.push({ name: "schema", pass: false, note: err });
+  }
   const cls = decision.classification;
   const questions = Array.isArray(decision.suggested_questions) ? decision.suggested_questions : [];
   const numQuestions = questions.length;
@@ -384,7 +521,54 @@ function scoreCase(c, decision, usage) {
     });
   }
 
-  // (f) cost ceiling (uses expected class so a misclassification doesn't hide cost regressions)
+  // (f) v0.4 signal / score expectations
+  if (Array.isArray(c.expected_activation_signals)) {
+    const actual = Array.isArray(decision.activation_signals) ? decision.activation_signals : [];
+    for (const signal of c.expected_activation_signals) {
+      checks.push({
+        name: `activation:${signal}`,
+        pass: topicCovered(signal, actual),
+        note: topicCovered(signal, actual) ? "covered" : `got [${actual.join(", ")}]`,
+      });
+    }
+  }
+  if (Array.isArray(c.expected_suppression_signals)) {
+    const actual = Array.isArray(decision.suppression_signals) ? decision.suppression_signals : [];
+    for (const signal of c.expected_suppression_signals) {
+      checks.push({
+        name: `suppression:${signal}`,
+        pass: topicCovered(signal, actual),
+        note: topicCovered(signal, actual) ? "covered" : `got [${actual.join(", ")}]`,
+      });
+    }
+  }
+  if ("expected_recommended_mode" in c) {
+    checks.push({
+      name: "mode",
+      pass: decision.recommended_mode === c.expected_recommended_mode,
+      note: `got ${decision.recommended_mode}, want ${c.expected_recommended_mode}`,
+    });
+  }
+  if ("expected_readiness_min" in c || "expected_readiness_max" in c) {
+    const min = Number.isFinite(c.expected_readiness_min) ? c.expected_readiness_min : -Infinity;
+    const max = Number.isFinite(c.expected_readiness_max) ? c.expected_readiness_max : Infinity;
+    checks.push({
+      name: "readiness_score",
+      pass: valueInRange(decision.readiness_score, min, max),
+      note: `${decision.readiness_score} in ${min === -Infinity ? "-∞" : min}..${max === Infinity ? "∞" : max}`,
+    });
+  }
+  if ("expected_ambiguity_min" in c || "expected_ambiguity_max" in c) {
+    const min = Number.isFinite(c.expected_ambiguity_min) ? c.expected_ambiguity_min : -Infinity;
+    const max = Number.isFinite(c.expected_ambiguity_max) ? c.expected_ambiguity_max : Infinity;
+    checks.push({
+      name: "ambiguity_score",
+      pass: valueInRange(decision.ambiguity_score, min, max),
+      note: `${decision.ambiguity_score} in ${min === -Infinity ? "-∞" : min}..${max === Infinity ? "∞" : max}`,
+    });
+  }
+
+  // (g) cost ceiling (uses expected class so a misclassification doesn't hide cost regressions)
   const ceiling = ceilingFor(c.expected_classification);
   checks.push({
     name: "cost",
@@ -408,6 +592,31 @@ function percentile(values, p) {
 function pad(s, n) {
   s = String(s);
   return s.length >= n ? s.slice(0, n) : s + " ".repeat(n - s.length);
+}
+
+function activationRank(cls) {
+  if (cls === "READY_TO_EXECUTE") return 0;
+  if (cls === "NEEDS_LIGHT_REFINEMENT") return 1;
+  if (cls === "NEEDS_INTAKE") return 2;
+  return null;
+}
+
+function overIntakeCandidate(row) {
+  const expected = activationRank(row.expected);
+  const actual = activationRank(row.classification);
+  return expected !== null && actual !== null && actual > expected;
+}
+
+function underIntakeCandidate(row) {
+  const expected = activationRank(row.expected);
+  const actual = activationRank(row.classification);
+  if (row.expected === "BLOCKED") return row.classification && row.classification !== "BLOCKED";
+  return expected !== null && actual !== null && actual < expected;
+}
+
+function summarizeIds(rows) {
+  if (!rows.length) return "none";
+  return rows.map((row) => row.id).join(", ");
 }
 
 // ---------------------------------------------------------------------------
@@ -520,13 +729,26 @@ async function runLive(cases, args) {
 
   // summary
   const n = rows.length;
-  const accuracy = n ? ((passed / n) * 100).toFixed(0) : "0";
+  const classificationCorrect = rows.filter((row) => row.classification === row.expected).length;
+  const classificationAccuracy = n ? ((classificationCorrect / n) * 100).toFixed(0) : "0";
+  const passRate = n ? ((passed / n) * 100).toFixed(0) : "0";
   const avgOut = outTokens.length ? Math.round(outTokens.reduce((a, b) => a + b, 0) / outTokens.length) : 0;
   const p95Out = percentile(outTokens, 95);
+  const questionCounts = rows.filter((row) => Number.isFinite(row.numQuestions)).map((row) => row.numQuestions);
+  const avgQuestions = questionCounts.length
+    ? (questionCounts.reduce((a, b) => a + b, 0) / questionCounts.length).toFixed(2)
+    : "0.00";
+  const overRows = rows.filter(overIntakeCandidate);
+  const underRows = rows.filter(underIntakeCandidate);
   console.log("\n" + col("bold", "  Summary"));
-  console.log(`    cases passed     ${passed}/${n} (${accuracy}%)`);
-  console.log(`    tokens (in/out)  ${totalIn} / ${totalOut}`);
-  console.log(`    output avg / p95 ${avgOut} / ${p95Out}`);
+  console.log(`    cases passed              ${passed}/${n} (${passRate}%)`);
+  console.log(`    classification accuracy   ${classificationCorrect}/${n} (${classificationAccuracy}%)`);
+  console.log(`    tokens (in/out)           ${totalIn} / ${totalOut}`);
+  console.log(`    avg output tokens         ${avgOut}`);
+  console.log(`    p95 output tokens         ${p95Out}`);
+  console.log(`    avg questions             ${avgQuestions}`);
+  console.log(`    over-intake candidates    ${overRows.length} (${summarizeIds(overRows)})`);
+  console.log(`    under-intake candidates   ${underRows.length} (${summarizeIds(underRows)})`);
 
   const priceIn = Number(process.env.INTAKE_EVAL_PRICE_IN);
   const priceOut = Number(process.env.INTAKE_EVAL_PRICE_OUT);
@@ -539,7 +761,12 @@ async function runLive(cases, args) {
 
   console.log("");
   if (passed === n) {
-    console.log(col("green", `✓ All ${n} case(s) passed (classification, question budget, must_not_do, cost ceiling).`));
+    console.log(
+      col(
+        "green",
+        `✓ All ${n} case(s) passed (schema, classification, signals, question budget, must_not_do, cost ceiling).`
+      )
+    );
     return 0;
   }
   console.log(col("red", `✗ ${n - passed} of ${n} case(s) failed.`));

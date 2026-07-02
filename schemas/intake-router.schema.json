@@ -5,8 +5,15 @@
   "type": "object",
   "additionalProperties": false,
   "required": [
+    "schema_version",
     "classification",
     "confidence",
+    "readiness_score",
+    "ambiguity_score",
+    "activation_signals",
+    "suppression_signals",
+    "recommended_mode",
+    "compact_summary",
     "reason",
     "known_fields",
     "critical_gaps",
@@ -14,6 +21,10 @@
     "provisional_task"
   ],
   "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "0.4"
+    },
     "classification": {
       "type": "string",
       "enum": [
@@ -28,9 +39,50 @@
       "minimum": 0,
       "maximum": 1
     },
+    "readiness_score": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "ambiguity_score": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "activation_signals": {
+      "type": "array",
+      "maxItems": 5,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "suppression_signals": {
+      "type": "array",
+      "maxItems": 5,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "recommended_mode": {
+      "type": "string",
+      "enum": [
+        "execute_now",
+        "state_assumptions_then_execute",
+        "ask_before_execute",
+        "decline_or_redirect"
+      ]
+    },
+    "compact_summary": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 220
+    },
     "reason": {
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "maxLength": 400
     },
     "known_fields": {
       "type": "object",
@@ -91,6 +143,7 @@
     },
     "critical_gaps": {
       "type": "array",
+      "maxItems": 5,
       "items": {
         "type": "string"
       }
@@ -107,7 +160,8 @@
       "type": [
         "string",
         "null"
-      ]
+      ],
+      "maxLength": 800
     }
   }
 }
