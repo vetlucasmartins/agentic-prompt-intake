@@ -1,11 +1,30 @@
-.DS_Store
-.env
-.env.*
-__pycache__/
-*.pyc
+# Dependencies & Builds
 node_modules/
 dist/
 build/
 .cache/
+*.egg-info/
+
+# Python & Caches
+__pycache__/
+*.pyc
+.venv/
+venv/
+env/
 .coverage
+htmlcov/
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Environment & Keys
+.env
+.env.*
+
+# Editor & OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
