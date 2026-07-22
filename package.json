@@ -1,8 +1,10 @@
 {
   "name": "agentic-prompt-intake",
   "version": "0.4.0",
-  "description": "Portable prompt intake protocol for AI agents — installs the conversational intake layer into Claude Code, Codex, Google Antigravity, Copilot, Cursor, Cline, Windsurf, Zed or Aider with one command.",
+  "description": "Intelligent, local-first data ingestion and context optimization engine for AI agents and LLM pipelines.",
   "private": false,
+  "main": "index.js",
+  "types": "index.d.ts",
   "license": "MIT",
   "bin": {
     "agentic-prompt-intake": "bin/cli.js",
@@ -11,13 +13,19 @@
   "scripts": {
     "validate": "python3 scripts/validate_structure.py",
     "start": "node bin/cli.js",
+    "test": "node test/pipeline.test.js",
     "eval": "node scripts/run_eval.mjs",
     "eval:dry": "node scripts/run_eval.mjs --dry-run"
+  },
+  "dependencies": {
+    "local-context-compiler": "file:../lcc"
   },
   "engines": {
     "node": ">=16"
   },
   "files": [
+    "index.js",
+    "index.d.ts",
     "bin/",
     "prompts/",
     "schemas/",
@@ -51,6 +59,13 @@
     "url": "https://github.com/vetlucasmartins/agentic-prompt-intake/issues"
   },
   "keywords": [
+    "openai",
+    "tiktoken",
+    "agentic-ai",
+    "context-optimization",
+    "prompt-engineering",
+    "local-first",
+    "typescript",
     "agents",
     "AGENTS.md",
     "prompting",

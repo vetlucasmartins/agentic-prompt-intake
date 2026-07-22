@@ -30,8 +30,9 @@ A good clinician does not treat a vague symptom description as a complete diagno
 The protocol creates a transition:
 
 ```text
-raw narration -> structured understanding -> gap detection -> clarifying questions -> executable brief
+raw narration -> structured understanding -> gap detection -> lcc local context optimization -> executable brief / LLM dispatch
 ```
+
 
 ## 3. Readiness classification
 
