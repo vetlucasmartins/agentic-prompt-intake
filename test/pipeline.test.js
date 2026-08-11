@@ -36,4 +36,6 @@ const resDisabled = processIngestion("Simple prompt", { optimization: { enabled:
 assert.strictEqual(resDisabled.optimization, null);
 assert(resDisabled.formattedOutput.includes("Simple prompt"));
 
+require("./toon.test.js");
+
 console.log("✓ All agentic-prompt-intake pipeline tests passed cleanly!");

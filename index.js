@@ -11,11 +11,19 @@ let LccCompressor;
 try {
   ({ LccCompressor } = require("local-context-compiler"));
 } catch (e) {
-  // Relative fallback when run locally without npm link
-  ({ LccCompressor } = require("../lcc/index.js"));
+  try {
+    ({ LccCompressor } = require("../lcc/index.js"));
+  } catch (e2) {
+    try {
+      ({ LccCompressor } = require("../LCC/lcc/index.js"));
+    } catch (e3) {
+      ({ LccCompressor } = require(require("path").resolve(__dirname, "../LCC/lcc/index.js")));
+    }
+  }
 }
 
 const PKG = require("./package.json");
+const { encodeToon } = require("./lib/toon.js");
 
 /**
  * Classifies raw intake prompt into protocol readiness state.
@@ -69,6 +77,7 @@ class AgenticIntakePipeline {
   constructor(config = {}) {
     this.config = {
       model: config.model || "gpt-4.1",
+      format: config.format || "markdown",
       optimization: {
         enabled: config.optimization ? config.optimization.enabled !== false : true,
         maxTokens: config.optimization ? config.optimization.maxTokens : undefined,
@@ -107,12 +116,34 @@ class AgenticIntakePipeline {
       finalPayloadText = lccRes.compressedText;
     }
 
-    // Format output payload ready for downstream LLM dispatch
-    const formattedOutput = [
-      `<!-- agentic-intake:readiness status="${parsed.readiness}" score="${parsed.readinessScore}" -->`,
-      parsed.assumptions.length ? `<!-- assumptions: ${parsed.assumptions.join("; ")} -->` : "",
-      finalPayloadText
-    ].filter(Boolean).join("\n\n");
+    const format = extraContext.format || this.config.format;
+    let formattedOutput = "";
+
+    if (format === "toon") {
+      const toonPayload = {
+        readiness: parsed.readiness,
+        score: parsed.readinessScore,
+        assumptions: parsed.assumptions,
+        questions: parsed.questions,
+        payload: finalPayloadText
+      };
+      formattedOutput = encodeToon(toonPayload, "intake");
+    } else if (format === "json") {
+      formattedOutput = JSON.stringify({
+        readiness: parsed.readiness,
+        score: parsed.readinessScore,
+        assumptions: parsed.assumptions,
+        questions: parsed.questions,
+        payload: finalPayloadText
+      });
+    } else {
+      // Default markdown format with header tags
+      formattedOutput = [
+        `<!-- agentic-intake:readiness status="${parsed.readiness}" score="${parsed.readinessScore}" -->`,
+        parsed.assumptions.length ? `<!-- assumptions: ${parsed.assumptions.join("; ")} -->` : "",
+        finalPayloadText
+      ].filter(Boolean).join("\n\n");
+    }
 
     return {
       rawInput,
@@ -136,5 +167,7 @@ function processIngestion(rawInput, config) {
 module.exports = {
   AgenticIntakePipeline,
   processIngestion,
-  parseInput
+  parseInput,
+  encodeToon
 };
+

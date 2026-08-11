@@ -10,6 +10,7 @@ export interface AgenticIntakeConfig {
   optimization?: AgenticIntakeOptimizationConfig;
   model?: string;
   defaultTaskType?: string;
+  format?: 'markdown' | 'toon' | 'json';
 }
 
 export type ReadinessClassification =
@@ -53,3 +54,5 @@ export class AgenticIntakePipeline {
 }
 
 export function processIngestion(rawInput: string, config?: AgenticIntakeConfig): IngestionResult;
+export function encodeToon(data: any, rootName?: string): string;
+
