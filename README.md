@@ -303,6 +303,10 @@ router, examples, evals, and a one-command installer.
 See [CONTRIBUTING.md](CONTRIBUTING.md). Keep instructions concise, portable, and
 consistent across adapters.
 
+## Built by LookADev
+
+[`agentic-prompt-intake`](https://github.com/vetlucasmartins/agentic-prompt-intake) is built by [LookADev](https://lookadev.com), a software & AI automation studio. We use protocols like this to keep AI agents from running on vague instructions. If you are wiring agents into a real product and want the intake, eval, and guardrails handled, we take on a small number of projects. **Start a project → lookadev.com** · **Email: lucas@lookadev.com**
+
 ## License
 
 MIT. See [LICENSE](LICENSE).
